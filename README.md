@@ -1,6 +1,7 @@
 # ear_trainer
 
-A new Flutter project.
+Are you tone deaf? Well bad luck my g, this app can kinda help, i guess?
+Anyway, new year, new project. And so is this, a new language for me to learn.
 
 ## Getting Started
 
