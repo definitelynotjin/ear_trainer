@@ -18,7 +18,7 @@ class FrontPage extends StatelessWidget {
         ),
         backgroundColor: Colors.blue,
         centerTitle: true,
-        toolbarHeight: 240,
+        toolbarHeight: 260,
       ),
       backgroundColor: Colors.cyan,
       body: Column(
@@ -32,7 +32,6 @@ class FrontPage extends StatelessWidget {
                 context,
                 MaterialPageRoute(builder: (context) => const Pitch()),
               );
-              // print("tapped");
             },
           ),
           MenuButton(

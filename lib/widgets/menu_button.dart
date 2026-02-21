@@ -14,16 +14,17 @@ class MenuButton extends StatelessWidget {
   });
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return Container(
       padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(border: Border.all(color: Colors.brown)),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(10),
         child: Row(
           children: [
-            SvgPicture.asset(iconPath, width: 40, height: 40),
+            SvgPicture.asset(iconPath, width: 35, height: 35),
             const SizedBox(width: 20),
-            Text(label, style: TextStyle(color: Colors.red, fontSize: 25)),
+            Text(label, style: TextStyle(color: Colors.green, fontSize: 25)),
           ],
         ),
       ),
