@@ -44,7 +44,7 @@ class _StepProgressBarState extends State<StepProgressBar> {
       theme: const StepProgressThemeData(
         stepLineSpacing: 3,
         defaultForegroundColor: Color.fromARGB(255, 138, 138, 138),
-        activeForegroundColor: Color.fromARGB(255, 1, 255, 73),
+        activeForegroundColor: Color.fromARGB(143, 255, 1, 1),
         stepLineStyle: StepLineStyle(
           lineThickness: 3,
           borderRadius: Radius.circular(2),

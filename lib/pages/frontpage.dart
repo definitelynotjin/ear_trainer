@@ -11,62 +11,93 @@ class FrontPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Ear Trainer',
-          style: TextStyle(color: Colors.yellow, fontSize: 51),
+      extendBodyBehindAppBar: true,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color.fromARGB(255, 105, 14, 174),
+              Color.fromARGB(255, 8, 175, 161),
+            ],
+          ),
         ),
-        backgroundColor: Colors.blue,
-        centerTitle: true,
-        toolbarHeight: 260,
-      ),
-      backgroundColor: Colors.cyan,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          MenuButton(
-            label: 'Pitch',
-            iconPath: 'assets/icons/single_note.svg',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const Pitch()),
-              );
-            },
-          ),
-          MenuButton(
-            label: 'Interval',
-            iconPath: 'assets/icons/double_note.svg',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const interval_page.Interval(),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 22, 14, 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 150),
+                Text(
+                  'Ear Trainer',
+                  style: TextStyle(
+                    color: Colors.yellow,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 40,
+                  ),
                 ),
-              );
-            },
+                const SizedBox(height: 150),
+                MenuButton(
+                  label: 'Pitch',
+                  iconPath: 'assets/icons/single_note.svg',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const Pitch()),
+                    );
+                  },
+                ),
+                SizedBox(height: 1),
+                MenuButton(
+                  label: 'Interval',
+                  iconPath: 'assets/icons/double_note.svg',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const interval_page.Interval(),
+                      ),
+                    );
+                  },
+                ),
+                SizedBox(height: 1),
+                MenuButton(
+                  label: 'Scale',
+                  iconPath: 'assets/icons/piano.svg',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const Scale()),
+                    );
+                  },
+                ),
+                SizedBox(height: 1),
+                MenuButton(
+                  label: 'Achievements',
+                  iconPath: 'assets/icons/trophy.svg',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const Achievements(),
+                      ),
+                    );
+                  },
+                ),
+                Text(
+                  'rawr',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w100,
+                  ),
+                ),
+              ],
+            ),
           ),
-          MenuButton(
-            label: 'Scale',
-            iconPath: 'assets/icons/piano.svg',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const Scale()),
-              );
-            },
-          ),
-          MenuButton(
-            label: 'Achievements',
-            iconPath: 'assets/icons/trophy.svg',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const Achievements()),
-              );
-            },
-          ),
-        ],
+        ),
       ),
     );
   }

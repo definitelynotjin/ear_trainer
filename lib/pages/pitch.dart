@@ -1,7 +1,10 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:ear_trainer/widgets/pagebar.dart';
 import 'package:ear_trainer/widgets/note_button.dart';
+import 'package:ear_trainer/widgets/arrow_button.dart';
+import 'package:ear_trainer/widgets/quiz_navigation_button.dart';
+import 'package:ear_trainer/models/pitchquestions.dart';
 import 'dart:math' as math;
 
 class Pitch extends StatefulWidget {
@@ -12,6 +15,51 @@ class Pitch extends StatefulWidget {
 }
 
 class _PitchState extends State<Pitch> {
+  final _rnd = math.Random();
+  final AudioPlayer _player = AudioPlayer();
+  late Note leftNote;
+  late Note rightNote;
+
+  void _nextQuestion() {
+    int a = _rnd.nextInt(Note.notes.length);
+    int b;
+    do {
+      b = _rnd.nextInt(Note.notes.length);
+    } while (b == a);
+    setState(() {
+      leftNote = Note.notes[a];
+      rightNote = Note.notes[b];
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _nextQuestion();
+  }
+
+  Future<void> _play(Note note) async {
+    await _player.stop();
+    final asset = 'audio/${note.name}${note.octave}.wav';
+    await _player.play(AssetSource(asset));
+  }
+
+  void _chooseLeft() {
+    final correct = leftNote.frequency > rightNote.frequency;
+    _nextQuestion();
+  }
+
+  void _chooseRight() {
+    final correct = rightNote.frequency > leftNote.frequency;
+    _nextQuestion();
+  }
+
+  @override
+  void dispose() {
+    _player.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -33,47 +81,55 @@ class _PitchState extends State<Pitch> {
               onStepChanged: (i) => debugPrint('step $i'),
             ),
           ),
+
+          const SizedBox(height: 80),
           const Text(
             'Which note is higher?',
-            style: TextStyle(fontSize: 25, color: Colors.brown),
+            style: TextStyle(fontSize: 25, color: Colors.yellow),
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              SvgPicture.asset(
-                'assets/icons/circle.svg',
-                width: 120,
-                height: 120,
-              ),
-              const SizedBox(width: 10),
-              SvgPicture.asset(
-                'assets/icons/circle.svg',
-                width: 120,
-                height: 120,
-              ),
-            ],
+          const SizedBox(height: 120),
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                CircleNoteButton(
+                  circleIcon: 'assets/icons/circle.svg',
+                  soundAsset: 'audio/${leftNote.name}${leftNote.octave}.wav',
+                  onPressed: () => _play(leftNote),
+                ),
+                const SizedBox(width: 1),
+                CircleNoteButton(
+                  circleIcon: 'assets/icons/circle.svg',
+                  soundAsset: 'audio/${rightNote.name}${rightNote.octave}.wav',
+                  onPressed: () => _play(rightNote),
+                ),
+              ],
+            ),
           ),
           Column(
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  SvgPicture.asset(
-                    'assets/icons/arrow_left.svg',
-                    height: 120,
-                    width: 120,
+                  ArrowButton(
+                    arrowIcon: 'assets/icons/arrow_left.svg',
+                    onPressed: _chooseLeft,
                   ),
-                  const SizedBox(width: 10),
-
+                  // const SizedBox(width: 5),
                   Transform.rotate(angle: -math.pi / 120),
-                  SvgPicture.asset(
-                    'assets/icons/arrow_right.svg',
-                    height: 120,
-                    width: 120,
+                  ArrowButton(
+                    arrowIcon: 'assets/icons/arrow_right.svg',
+                    onPressed: _chooseRight,
                   ),
                 ],
               ),
             ],
+          ),
+          QuizNavigationButton(
+            navIcon: 'assets/icons/arrow_right.svg',
+            label: 'rawr',
+            onTap: () {},
           ),
         ],
       ),

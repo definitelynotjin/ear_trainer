@@ -11,7 +11,7 @@ class Interval extends StatelessWidget {
           'Interval',
           style: TextStyle(color: Colors.yellow, fontSize: 20),
         ),
-        backgroundColor: Colors.green,
+        backgroundColor: Colors.yellow,
       ),
     );
   }
