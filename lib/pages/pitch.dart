@@ -44,6 +44,11 @@ class _PitchState extends State<Pitch> {
     await _player.play(AssetSource(asset));
   }
 
+  void _score() {
+    String right;
+    String wrong;
+  }
+
   void _chooseLeft() {
     final correct = leftNote.frequency > rightNote.frequency;
     _nextQuestion();
@@ -64,14 +69,15 @@ class _PitchState extends State<Pitch> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        foregroundColor: Colors.white,
         title: Text(
           'Pitch',
-          style: TextStyle(color: Colors.yellow, fontSize: 20),
+          style: TextStyle(color: Colors.white, fontSize: 20),
         ),
         actions: [],
-        backgroundColor: Colors.red,
+        backgroundColor: Color.fromARGB(255, 32, 32, 32).withValues(alpha: 0.1),
       ),
-      backgroundColor: Colors.cyan,
+      backgroundColor: Color.fromARGB(255, 32, 32, 32),
       body: Column(
         children: [
           Padding(
@@ -85,7 +91,7 @@ class _PitchState extends State<Pitch> {
           const SizedBox(height: 80),
           const Text(
             'Which note is higher?',
-            style: TextStyle(fontSize: 25, color: Colors.yellow),
+            style: TextStyle(fontSize: 25, color: Colors.white70),
           ),
           const SizedBox(height: 120),
           Padding(
@@ -116,7 +122,6 @@ class _PitchState extends State<Pitch> {
                     arrowIcon: 'assets/icons/arrow_left.svg',
                     onPressed: _chooseLeft,
                   ),
-                  // const SizedBox(width: 5),
                   Transform.rotate(angle: -math.pi / 120),
                   ArrowButton(
                     arrowIcon: 'assets/icons/arrow_right.svg',
