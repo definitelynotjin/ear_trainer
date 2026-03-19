@@ -19,7 +19,7 @@ class AboutMe extends StatelessWidget {
         onPressed: () {},
         child: Padding(
           padding: const EdgeInsetsGeometry.all(2),
-          child: Text(title, style: TextStyle(color: Colors.greenAccent)),
+          child: Text(title, style: TextStyle(color: Colors.yellow)),
         ),
       ),
       onPressed: () {},

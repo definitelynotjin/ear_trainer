@@ -1,17 +1,190 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
+import 'package:ear_trainer/widgets/pagebar.dart';
+import 'package:ear_trainer/widgets/choice_button.dart';
+import 'package:ear_trainer/widgets/note_button.dart';
+import 'package:ear_trainer/models/note.dart';
 
-class Interval extends StatelessWidget {
+class Interval extends StatefulWidget {
   const Interval({super.key});
 
+  @override
+  State<Interval> createState() => _IntervalState();
+}
+
+class _IntervalState extends State<Interval> {
+  @override
+  void initState() {
+    super.initState();
+    _nextQuestion();
+  }
+
+  void _nextQuestion() {
+    int a = _rnd.nextInt(Note.notes.length);
+    int b;
+    do {
+      b = _rnd.nextInt(Note.notes.length);
+    } while (b == a);
+    final int distance = (Note.notes[a].semitone - Note.notes[b].semitone)
+        .abs();
+    final List<int> wrongs =
+        _possibleDistances.where((d) => d != distance).toList()..shuffle(_rnd);
+    final List<int> choices = [distance, wrongs[0], wrongs[1], wrongs[2]]
+      ..shuffle(_rnd);
+
+    setState(() {
+      leftNote = Note.notes[a];
+      rightNote = Note.notes[b];
+      _correctDistance = distance;
+      _choices = choices;
+      _leftPlayed = false;
+      _rightPlayed = false;
+    });
+  }
+
+  Future<void> _play(Note note) async {
+    await _player.stop();
+    final asset = 'audio/${note.name}${note.octave}.wav';
+    await _player.play(AssetSource(asset));
+    setState(() {
+      if (note == leftNote) {
+        _leftPlayed = true;
+      } else if (note == rightNote) {
+        _rightPlayed = true;
+      }
+    });
+  }
+
+  void _choose(int distance) {
+    if (!_canChoose) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.blue,
+          content: Text('Play both notes first'),
+        ),
+      );
+      return;
+    }
+    final bool correct = distance == _correctDistance;
+    setState(() {
+      if (correct) _scoreCount++;
+    });
+
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(correct ? 'Correct' : 'Incorrect'),
+        backgroundColor: correct ? Colors.green : Colors.red,
+      ),
+    );
+    _nextQuestion();
+  }
+
+  @override
+  void dispose() {
+    _player.dispose();
+    super.dispose();
+  }
+
+  final _rnd = math.Random();
+  final AudioPlayer _player = AudioPlayer();
+  late Note leftNote;
+  late Note rightNote;
+  late int _correctDistance;
+  late List<int> _choices;
+  static const List<int> _possibleDistances = [2, 3, 4, 5, 7, 9, 11];
+  int _scoreCount = 0;
+  bool _leftPlayed = false;
+  bool _rightPlayed = false;
+  bool get _canChoose => _leftPlayed && _rightPlayed;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        foregroundColor: Colors.white,
         title: Text(
           'Interval',
-          style: TextStyle(color: Colors.yellow, fontSize: 20),
+          style: TextStyle(color: Colors.white, fontSize: 20),
         ),
-        backgroundColor: Colors.yellow,
+        actions: [],
+        backgroundColor: Color.fromARGB(255, 32, 32, 32).withValues(alpha: 0.1),
+      ),
+      backgroundColor: Color.fromARGB(255, 32, 32, 32),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: StepProgressBar(
+              totalSteps: 10,
+              onStepChanged: (i) => debugPrint('step $i'),
+            ),
+          ),
+
+          Text(
+            'Score: $_scoreCount',
+            style: TextStyle(fontSize: 20, color: Colors.white),
+          ),
+          const SizedBox(height: 80),
+          const Text(
+            'How far apart are the notes?',
+            style: TextStyle(fontSize: 25, color: Colors.white70),
+          ),
+          const SizedBox(height: 120),
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                CircleNoteButton(
+                  circleIcon: 'assets/icons/circle.svg',
+                  soundAsset: 'audio/${leftNote.name}${leftNote.octave}.wav',
+                  onPressed: () => _play(leftNote),
+                ),
+                const SizedBox(width: 1),
+                CircleNoteButton(
+                  circleIcon: 'assets/icons/circle.svg',
+                  soundAsset: 'audio/${rightNote.name}${rightNote.octave}.wav',
+                  onPressed: () => _play(rightNote),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            children: [
+              Padding(
+                padding: const EdgeInsetsGeometry.all(2),
+                child: GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  childAspectRatio: 2.2,
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  children: [
+                    ..._choices.map(
+                      (distance) => ChoiceButton(
+                        answer: distance.toString(),
+                        onPressed: () => _choose(distance),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          // QuizNavigationButton(
+          //   navIcon: 'assets/icons/arrow_right.svg',
+          //   label: 'rawr',
+          //   onTap: () {},
+          // ),
+
+          // QuizNavigationButton(
+          //   navIcon: 'assets/icons/arrow_right.svg',
+          //   label: 'rawr',
+          //   onTap: () {},
+          // ),
+        ],
       ),
     );
   }

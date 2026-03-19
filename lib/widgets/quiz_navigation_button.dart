@@ -29,8 +29,12 @@ class _QuizNavigationButtonState extends State<QuizNavigationButton> {
       child: InkWell(
         borderRadius: BorderRadius.circular(50),
         onTap: widget.onTap,
-        child: Row(
-          children: [SvgPicture.asset(widget.navIcon, width: s, height: s)],
+        child: SizedBox(
+          width: 100,
+          height: 100,
+          child: Center(
+            child: SvgPicture.asset(widget.navIcon, width: s, height: s),
+          ),
         ),
       ),
     );

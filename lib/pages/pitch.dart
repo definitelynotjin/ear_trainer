@@ -4,7 +4,7 @@ import 'package:ear_trainer/widgets/pagebar.dart';
 import 'package:ear_trainer/widgets/note_button.dart';
 import 'package:ear_trainer/widgets/arrow_button.dart';
 import 'package:ear_trainer/widgets/quiz_navigation_button.dart';
-import 'package:ear_trainer/models/pitchquestions.dart';
+import 'package:ear_trainer/models/note.dart';
 import 'dart:math' as math;
 
 class Pitch extends StatefulWidget {
@@ -19,6 +19,10 @@ class _PitchState extends State<Pitch> {
   final AudioPlayer _player = AudioPlayer();
   late Note leftNote;
   late Note rightNote;
+  int _scoreCount = 0;
+  bool _leftPlayed = false;
+  bool _rightPlayed = false;
+  bool get _canChoose => _leftPlayed && _rightPlayed;
 
   void _nextQuestion() {
     int a = _rnd.nextInt(Note.notes.length);
@@ -29,6 +33,8 @@ class _PitchState extends State<Pitch> {
     setState(() {
       leftNote = Note.notes[a];
       rightNote = Note.notes[b];
+      _leftPlayed = false;
+      _rightPlayed = false;
     });
   }
 
@@ -42,21 +48,39 @@ class _PitchState extends State<Pitch> {
     await _player.stop();
     final asset = 'audio/${note.name}${note.octave}.wav';
     await _player.play(AssetSource(asset));
+    setState(() {
+      if (note == leftNote) {
+        _leftPlayed = true;
+      } else if (note == rightNote) {
+        _rightPlayed = true;
+      }
+    });
   }
 
-  void _score() {
-    String right;
-    String wrong;
+  void _score(bool leftChosen) {
+    final bool correct = leftChosen
+        ? leftNote.frequency > rightNote.frequency
+        : rightNote.frequency > leftNote.frequency;
+    setState(() {
+      if (correct) _scoreCount++;
+    });
+
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(correct ? 'Correct' : 'Incorrect'),
+        backgroundColor: correct ? Colors.green : Colors.red,
+      ),
+    );
+    _nextQuestion();
   }
 
   void _chooseLeft() {
-    final correct = leftNote.frequency > rightNote.frequency;
-    _nextQuestion();
+    _score(true);
   }
 
   void _chooseRight() {
-    final correct = rightNote.frequency > leftNote.frequency;
-    _nextQuestion();
+    _score(false);
   }
 
   @override
@@ -86,6 +110,10 @@ class _PitchState extends State<Pitch> {
               totalSteps: 10,
               onStepChanged: (i) => debugPrint('step $i'),
             ),
+          ),
+          Text(
+            'Score: $_scoreCount',
+            style: TextStyle(fontSize: 20, color: Colors.white),
           ),
 
           const SizedBox(height: 80),
@@ -120,17 +148,41 @@ class _PitchState extends State<Pitch> {
                 children: [
                   ArrowButton(
                     arrowIcon: 'assets/icons/arrow_left.svg',
-                    onPressed: _chooseLeft,
+                    onPressed: _canChoose
+                        ? _chooseLeft
+                        : () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                backgroundColor: Colors.blue,
+                                content: Text('Play both the notes first '),
+                              ),
+                            );
+                          },
                   ),
-                  Transform.rotate(angle: -math.pi / 120),
+                  // Transform.rotate(angle: -math.pi / 120),
                   ArrowButton(
                     arrowIcon: 'assets/icons/arrow_right.svg',
-                    onPressed: _chooseRight,
+                    onPressed: _canChoose
+                        ? _chooseRight
+                        : () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                backgroundColor: Colors.blue,
+                                content: Text('Play both the notes first'),
+                              ),
+                            );
+                          },
                   ),
                 ],
               ),
             ],
           ),
+          QuizNavigationButton(
+            navIcon: 'assets/icons/arrow_right.svg',
+            label: 'rawr',
+            onTap: () {},
+          ),
+
           QuizNavigationButton(
             navIcon: 'assets/icons/arrow_right.svg',
             label: 'rawr',
