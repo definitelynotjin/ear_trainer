@@ -128,7 +128,7 @@ class _IntervalState extends State<Interval> {
           const SizedBox(height: 80),
           const Text(
             'How far apart are the notes?',
-            style: TextStyle(fontSize: 25, color: Colors.white70),
+            style: TextStyle(fontSize: 20, color: Colors.white70),
           ),
           const SizedBox(height: 120),
           Padding(
@@ -153,14 +153,14 @@ class _IntervalState extends State<Interval> {
           Column(
             children: [
               Padding(
-                padding: const EdgeInsetsGeometry.all(2),
+                padding: const EdgeInsetsGeometry.all(15),
                 child: GridView.count(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   childAspectRatio: 2.2,
                   crossAxisCount: 2,
                   mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
+                  crossAxisSpacing: 15,
                   children: [
                     ..._choices.map(
                       (distance) => ChoiceButton(
@@ -173,17 +173,6 @@ class _IntervalState extends State<Interval> {
               ),
             ],
           ),
-          // QuizNavigationButton(
-          //   navIcon: 'assets/icons/arrow_right.svg',
-          //   label: 'rawr',
-          //   onTap: () {},
-          // ),
-
-          // QuizNavigationButton(
-          //   navIcon: 'assets/icons/arrow_right.svg',
-          //   label: 'rawr',
-          //   onTap: () {},
-          // ),
         ],
       ),
     );

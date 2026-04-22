@@ -119,7 +119,7 @@ class _PitchState extends State<Pitch> {
           const SizedBox(height: 80),
           const Text(
             'Which note is higher?',
-            style: TextStyle(fontSize: 25, color: Colors.white70),
+            style: TextStyle(fontSize: 20, color: Colors.white70),
           ),
           const SizedBox(height: 120),
           Padding(
@@ -177,16 +177,21 @@ class _PitchState extends State<Pitch> {
               ),
             ],
           ),
-          QuizNavigationButton(
-            navIcon: 'assets/icons/arrow_right.svg',
-            label: 'rawr',
-            onTap: () {},
-          ),
+          Row(
+            children: [
+              QuizNavigationButton(
+                navIcon: 'assets/icons/arrow_left.svg',
+                label: 'rawr',
+                onTap: () {},
+              ),
+              const SizedBox(width: 100, height: 400),
 
-          QuizNavigationButton(
-            navIcon: 'assets/icons/arrow_right.svg',
-            label: 'rawr',
-            onTap: () {},
+              QuizNavigationButton(
+                navIcon: 'assets/icons/arrow_right.svg',
+                label: 'rawr',
+                onTap: () {},
+              ),
+            ],
           ),
         ],
       ),

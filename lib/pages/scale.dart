@@ -13,6 +13,7 @@ class Scale extends StatelessWidget {
         ),
         backgroundColor: Colors.red,
       ),
+      body: Column(),
     );
   }
 }
