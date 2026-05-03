@@ -115,7 +115,6 @@ class _PitchState extends State<Pitch> {
             'Score: $_scoreCount',
             style: TextStyle(fontSize: 20, color: Colors.white),
           ),
-
           const SizedBox(height: 80),
           const Text(
             'Which note is higher?',
@@ -184,7 +183,6 @@ class _PitchState extends State<Pitch> {
                 label: 'rawr',
                 onTap: () {},
               ),
-              const SizedBox(width: 100, height: 400),
 
               QuizNavigationButton(
                 navIcon: 'assets/icons/arrow_right.svg',

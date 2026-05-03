@@ -5,6 +5,7 @@ import 'package:ear_trainer/pages/pitch.dart';
 import 'package:ear_trainer/pages/interval.dart' as interval_page;
 import 'package:ear_trainer/pages/scale.dart';
 import 'package:ear_trainer/pages/achievements.dart';
+import 'package:ear_trainer/pages/scaleused.dart';
 
 class FrontPage extends StatelessWidget {
   const FrontPage({super.key});
@@ -98,7 +99,23 @@ class FrontPage extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 160),
+
+                      const SizedBox(height: 12),
+
+                      SizedBox(
+                        child: MenuButton(
+                          iconColor: Colors.purpleAccent,
+                          label: 'Scale Used',
+                          iconPath: 'assets/icons/cadence.svg',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const ScaleUsed(),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 80),
                       AboutMe(title: 'What about me nigga?'),
                     ],
                   ),
