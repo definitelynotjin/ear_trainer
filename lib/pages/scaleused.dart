@@ -43,12 +43,12 @@ class _ScaleUsedState extends State<ScaleUsed> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            const SizedBox(height: 140),
+            const SizedBox(height: 80),
             Text(
               'C Major Scale',
-              style: TextStyle(fontSize: 40, color: Colors.white),
+              style: TextStyle(fontSize: 30, color: Colors.white),
             ),
-            const SizedBox(height: 140),
+            const SizedBox(height: 80),
             Expanded(
               child: GridView.builder(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(

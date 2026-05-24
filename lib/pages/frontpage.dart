@@ -1,5 +1,4 @@
 import 'package:ear_trainer/widgets/menu_button.dart';
-import 'package:ear_trainer/widgets/aboutme.dart';
 import 'package:flutter/material.dart';
 import 'package:ear_trainer/pages/pitch.dart';
 import 'package:ear_trainer/pages/interval.dart' as interval_page;
@@ -104,7 +103,7 @@ class FrontPage extends StatelessWidget {
 
                       SizedBox(
                         child: MenuButton(
-                          iconColor: Colors.purpleAccent,
+                          iconColor: Colors.orangeAccent,
                           label: 'Scale Used',
                           iconPath: 'assets/icons/cadence.svg',
                           onTap: () => Navigator.push(
@@ -115,8 +114,42 @@ class FrontPage extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 80),
-                      AboutMe(title: 'What about me nigga?'),
+                      const SizedBox(height: 70),
+                      // SizedBox(
+                      //   child: Center(
+                      //     child: MenuButton(
+                      //       label: 'About the App',
+                      //       iconPath: 'assets/icons/cadence.svg',
+                      //       onTap: () => Navigator.push(
+                      //         context,
+                      //         MaterialPageRoute(
+                      //           builder: (_) => const AboutMe(),
+                      //         ),
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
+                      FloatingActionButton(
+                        onPressed: () {
+                          showModalBottomSheet(
+                            context: context,
+                            builder: (context) {
+                              return Column(
+                                children: [
+                                  Column(
+                                    children: [
+                                      SizedBox(height: 300, width: 380),
+                                    ],
+                                  ),
+                                  const Text(
+                                    'Why is this app the way it is huh?',
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ),

@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 
-class Scale extends StatelessWidget {
-  const Scale({super.key});
+class AboutMe extends StatelessWidget {
+  const AboutMe({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Scale',
-          style: TextStyle(color: Colors.yellow, fontSize: 20),
+          'ABOUT ME RAWR',
+          style: TextStyle(color: Colors.white, fontSize: 20),
         ),
+        actions: [],
         backgroundColor: Colors.red,
       ),
-      body: Column(children: [Text('niggerk')]),
+      body: Column(),
     );
   }
 }

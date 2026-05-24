@@ -32,8 +32,8 @@ class ArrowButtonState extends State<ArrowButton> {
           child: Center(
             child: SvgPicture.asset(
               widget.arrowIcon,
-              width: s * 4,
-              height: s * 4,
+              width: s * 2,
+              height: s * 2,
               fit: BoxFit.fill,
             ),
           ),
