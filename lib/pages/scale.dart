@@ -7,13 +7,14 @@ class Scale extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        foregroundColor: Colors.white,
         title: Text(
           'Scale',
-          style: TextStyle(color: Colors.yellow, fontSize: 20),
+          style: TextStyle(color: Colors.white, fontSize: 20),
         ),
-        backgroundColor: Colors.red,
+        backgroundColor: Color.fromARGB(255, 32, 32, 32),
       ),
-      body: Column(children: [Text('niggerk')]),
+      body: Column(children: [Text('tests')]),
     );
   }
 }

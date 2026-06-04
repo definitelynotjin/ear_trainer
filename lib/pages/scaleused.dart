@@ -33,7 +33,7 @@ class _ScaleUsedState extends State<ScaleUsed> {
       appBar: AppBar(
         foregroundColor: Colors.white,
         title: Text(
-          'Scale Used',
+          'Scale Used123',
           style: TextStyle(color: Colors.white, fontSize: 20),
         ),
         backgroundColor: Color.fromARGB(255, 32, 32, 32),
