@@ -32,25 +32,31 @@ class ScaleUsedButton extends StatelessWidget {
           child: SizedBox(
             width: s,
             height: s,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SvgPicture.asset(
-                  'assets/icons/waves.svg',
-                  width: s * 0.8,
-                  height: s * 0.8,
-                  fit: BoxFit.contain,
-                  color: Colors.white60,
-                ),
-                Text(
-                  noteName,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.red),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SvgPicture.asset(
+                    'assets/icons/waves.svg',
+                    width: s * 0.8,
+                    height: s * 0.8,
+                    fit: BoxFit.contain,
+                    color: Colors.white60,
                   ),
-                ),
-              ],
+                  Text(
+                    noteName,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

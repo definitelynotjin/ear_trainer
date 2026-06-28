@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 
 class ChoiceButton extends StatelessWidget {
   final String answer;
+  final String? subtitle;
   final VoidCallback onPressed;
 
   const ChoiceButton({
+    this.subtitle,
     required this.answer,
     required this.onPressed,
     super.key,
@@ -31,10 +33,19 @@ class ChoiceButton extends StatelessWidget {
                 color: Colors.white,
               ),
             ),
-            const Text(
-              'notes apart',
-              style: TextStyle(fontSize: 12, color: Colors.white38),
-            ),
+            if (subtitle != null) ...[
+              const SizedBox(height: 3),
+              Text(
+                subtitle!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white38),
+              ),
+            ],
+
+            // const Text(
+            //   'notes apart',
+            //   style: TextStyle(fontSize: 12, color: Colors.white38),
+            // ),
           ],
         ),
       ),

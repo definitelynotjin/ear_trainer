@@ -27,9 +27,7 @@ class _AchievementsState extends State<Achievements> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            const SizedBox(height: 50),
-            Text('Testing this shit ahhahahahahaha'),
-            const SizedBox(height: 50),
+            // const SizedBox(height: 50),
             Expanded(
               child: GridView.builder(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -43,6 +41,7 @@ class _AchievementsState extends State<Achievements> {
                   return AchievementBadge(
                     icon: achievement.icon,
                     title: achievement.title,
+                    description: achievement.description,
                     onPressed: () {},
                   );
                 },

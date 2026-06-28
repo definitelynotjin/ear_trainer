@@ -130,7 +130,7 @@ class _IntervalState extends State<Interval> {
             'How far apart are the notes?',
             style: TextStyle(fontSize: 20, color: Colors.white70),
           ),
-          const SizedBox(height: 120),
+          const SizedBox(height: 80),
           Padding(
             padding: const EdgeInsets.all(10),
             child: Row(
@@ -150,6 +150,7 @@ class _IntervalState extends State<Interval> {
               ],
             ),
           ),
+          const SizedBox(height: 80),
           Column(
             children: [
               Padding(
@@ -163,9 +164,19 @@ class _IntervalState extends State<Interval> {
                   crossAxisSpacing: 15,
                   children: [
                     ..._choices.map(
-                      (distance) => ChoiceButton(
-                        answer: distance.toString(),
-                        onPressed: () => _choose(distance),
+                      (distance) => Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: double.infinity,
+                            height: 82,
+                            child: ChoiceButton(
+                              answer: distance.toString(),
+                              subtitle: 'notes apart',
+                              onPressed: () => _choose(distance),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
