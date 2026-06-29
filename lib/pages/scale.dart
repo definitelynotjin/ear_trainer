@@ -166,9 +166,9 @@ class _ScaleState extends State<Scale> {
             const SizedBox(height: 8),
             const Text(
               'Guess the missing note in the C major scale',
-              style: TextStyle(fontSize: 18, color: Colors.white),
+              style: TextStyle(fontSize: 16, color: Colors.white),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 48),
             const Text(
               'Playable notes (tap to hear):',
               style: TextStyle(color: Colors.white70),
@@ -216,7 +216,7 @@ class _ScaleState extends State<Scale> {
                 );
               }).toList(),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 80),
             const Text(
               'Which note is missing?',
               style: TextStyle(color: Colors.white, fontSize: 18),

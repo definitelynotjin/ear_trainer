@@ -36,7 +36,6 @@ class AchievementBadge extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // show svg if available; otherwise show a fallback icon to avoid crashing
               SizedBox(
                 width: 60,
                 height: 60,

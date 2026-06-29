@@ -200,21 +200,21 @@ class _PitchState extends State<Pitch> {
               ),
             ],
           ),
-          Row(
-            children: [
-              QuizNavigationButton(
-                navIcon: 'assets/icons/arrow_left.svg',
-                label: 'rawr',
-                onTap: () {},
-              ),
+          // Row(
+          //   children: [
+          //     QuizNavigationButton(
+          //       navIcon: 'assets/icons/arrow_left.svg',
+          //       label: 'rawr',
+          //       onTap: () {},
+          //     ),
 
-              QuizNavigationButton(
-                navIcon: 'assets/icons/arrow_right.svg',
-                label: 'rawr',
-                onTap: () {},
-              ),
-            ],
-          ),
+          //     QuizNavigationButton(
+          //       navIcon: 'assets/icons/arrow_right.svg',
+          //       label: 'rawr',
+          //       onTap: () {},
+          //     ),
+          //   ],
+          // ),
         ],
       ),
     );
