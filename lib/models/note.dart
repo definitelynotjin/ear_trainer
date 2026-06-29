@@ -19,5 +19,6 @@ class Note {
     Note(name: 'G', octave: 4, frequency: 392.00, semitone: 7),
     Note(name: 'A', octave: 4, frequency: 440.00, semitone: 9),
     Note(name: 'B', octave: 4, frequency: 493.88, semitone: 11),
+    Note(name: 'C', octave: 5, frequency: 523.25, semitone: 12),
   ];
 }

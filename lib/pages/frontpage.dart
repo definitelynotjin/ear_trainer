@@ -35,7 +35,7 @@ class FrontPage extends StatelessWidget {
               children: [
                 const SizedBox(height: 120),
                 Text(
-                  'Ear xxTrainer',
+                  'Ear Trainer',
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.9),
                     fontWeight: FontWeight.w500,
@@ -231,6 +231,83 @@ class FrontPage extends StatelessWidget {
                                       },
                                       icon: const Icon(Icons.restart_alt),
                                       label: const Text('Reset Achievements'),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    ElevatedButton.icon(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.green,
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 14,
+                                        ),
+                                      ),
+                                      onPressed: () async {
+                                        final shouldUnlock = await showDialog<bool>(
+                                          context: context,
+                                          builder: (dialogContext) {
+                                            return AlertDialog(
+                                              backgroundColor:
+                                                  const Color.fromARGB(
+                                                    255,
+                                                    32,
+                                                    32,
+                                                    32,
+                                                  ),
+                                              title: const Text(
+                                                'Unlock all achievements?',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                              content: const Text(
+                                                'This will unlock every available achievement.',
+                                                style: TextStyle(
+                                                  color: Colors.white70,
+                                                ),
+                                              ),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(
+                                                        dialogContext,
+                                                        false,
+                                                      ),
+                                                  child: const Text('Cancel'),
+                                                ),
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(
+                                                        dialogContext,
+                                                        true,
+                                                      ),
+                                                  child: const Text('Unlock'),
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
+
+                                        if (shouldUnlock == true) {
+                                          await Achievement.unlockAll();
+                                          if (context.mounted) {
+                                            Navigator.pop(context);
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'All achievements unlocked',
+                                                ),
+                                                backgroundColor: Colors.green,
+                                              ),
+                                            );
+                                          }
+                                        }
+                                      },
+                                      icon: const Icon(Icons.lock_open),
+                                      label: const Text(
+                                        'Unlock All Achievements',
+                                      ),
                                     ),
                                   ],
                                 ),

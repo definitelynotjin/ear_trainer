@@ -64,6 +64,12 @@ class Achievement {
       description: 'Get a perfect score in one session (10/10).',
       icon: 'assets/badges/badge_flawless.svg',
     ),
+    Achievement(
+      id: 'completionist',
+      title: 'Completionist',
+      description: 'Unlock every available badge',
+      icon: 'assets/badges/badge_completionist.svg',
+    ),
   ];
 
   static Achievement? _findById(String id) {
@@ -115,6 +121,13 @@ class Achievement {
     _completedExercises.clear();
     await prefs.remove(_unlockedKey);
     await prefs.remove(_completedExercisesKey);
+  }
+
+  static Future<void> unlockAll() async {
+    for (final achievement in all) {
+      achievement.isUnlocked = true;
+    }
+    await _saveState();
   }
 
   static Future<void> unlock(String id) async {
