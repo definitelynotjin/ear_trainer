@@ -5,6 +5,7 @@ import 'package:ear_trainer/widgets/note_button.dart';
 import 'package:ear_trainer/widgets/arrow_button.dart';
 import 'package:ear_trainer/widgets/quiz_navigation_button.dart';
 import 'package:ear_trainer/models/note.dart';
+import 'package:ear_trainer/models/achievements.dart';
 import 'dart:math' as math;
 
 class Pitch extends StatefulWidget {
@@ -20,6 +21,8 @@ class _PitchState extends State<Pitch> {
   late Note leftNote;
   late Note rightNote;
   int _scoreCount = 0;
+  int _streakCount = 0;
+  int _questionCount = 0;
   bool _leftPlayed = false;
   bool _rightPlayed = false;
   bool get _canChoose => _leftPlayed && _rightPlayed;
@@ -41,6 +44,7 @@ class _PitchState extends State<Pitch> {
   @override
   void initState() {
     super.initState();
+    Achievement.markExerciseUsed('pitch');
     _nextQuestion();
   }
 
@@ -62,8 +66,23 @@ class _PitchState extends State<Pitch> {
         ? leftNote.frequency > rightNote.frequency
         : rightNote.frequency > leftNote.frequency;
     setState(() {
+      _questionCount++;
       if (correct) _scoreCount++;
+      _streakCount = correct ? _streakCount + 1 : 0;
     });
+
+    if (correct && _scoreCount == 1) {
+      Achievement.unlock('first_note');
+    }
+    if (_streakCount >= 5) {
+      Achievement.unlock('perfect_pitch');
+    }
+    if (_questionCount >= 10) {
+      Achievement.unlock('pitch_veteran');
+      if (_scoreCount >= 10) {
+        Achievement.unlock('flawless');
+      }
+    }
 
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -114,6 +133,11 @@ class _PitchState extends State<Pitch> {
           Text(
             'Score: $_scoreCount',
             style: TextStyle(fontSize: 20, color: Colors.white),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Streak: $_streakCount',
+            style: const TextStyle(fontSize: 16, color: Colors.white70),
           ),
           const SizedBox(height: 80),
           const Text(

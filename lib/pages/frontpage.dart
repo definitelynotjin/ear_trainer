@@ -5,6 +5,7 @@ import 'package:ear_trainer/pages/interval.dart' as interval_page;
 import 'package:ear_trainer/pages/scale.dart';
 import 'package:ear_trainer/pages/achievements.dart';
 import 'package:ear_trainer/pages/scaleused.dart';
+import 'package:ear_trainer/models/achievements.dart';
 
 class FrontPage extends StatelessWidget {
   const FrontPage({super.key});
@@ -34,7 +35,7 @@ class FrontPage extends StatelessWidget {
               children: [
                 const SizedBox(height: 120),
                 Text(
-                  'Ear Trainer',
+                  'Ear xxTrainer',
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.9),
                     fontWeight: FontWeight.w500,
@@ -133,18 +134,106 @@ class FrontPage extends StatelessWidget {
                         onPressed: () {
                           showModalBottomSheet(
                             context: context,
+                            backgroundColor: const Color.fromARGB(
+                              255,
+                              32,
+                              32,
+                              32,
+                            ),
                             builder: (context) {
-                              return Column(
-                                children: [
-                                  Column(
-                                    children: [
-                                      SizedBox(height: 300, width: 380),
-                                    ],
-                                  ),
-                                  const Text(
-                                    'Why is this app the way it is huh?',
-                                  ),
-                                ],
+                              return Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    const Text(
+                                      'Settings',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    ElevatedButton.icon(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.redAccent,
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 14,
+                                        ),
+                                      ),
+                                      onPressed: () async {
+                                        final shouldReset = await showDialog<bool>(
+                                          context: context,
+                                          builder: (dialogContext) {
+                                            return AlertDialog(
+                                              backgroundColor:
+                                                  const Color.fromARGB(
+                                                    255,
+                                                    32,
+                                                    32,
+                                                    32,
+                                                  ),
+                                              title: const Text(
+                                                'Reset achievements?',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                              content: const Text(
+                                                'This will clear all unlocked achievements and exercise progress.',
+                                                style: TextStyle(
+                                                  color: Colors.white70,
+                                                ),
+                                              ),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(
+                                                        dialogContext,
+                                                        false,
+                                                      ),
+                                                  child: const Text('Cancel'),
+                                                ),
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(
+                                                        dialogContext,
+                                                        true,
+                                                      ),
+                                                  child: const Text('Reset'),
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
+
+                                        if (shouldReset == true) {
+                                          await Achievement.resetAll();
+                                          if (context.mounted) {
+                                            Navigator.pop(context);
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'Achievements reset',
+                                                ),
+                                                backgroundColor: Colors.green,
+                                              ),
+                                            );
+                                          }
+                                        }
+                                      },
+                                      icon: const Icon(Icons.restart_alt),
+                                      label: const Text('Reset Achievements'),
+                                    ),
+                                  ],
+                                ),
                               );
                             },
                           );

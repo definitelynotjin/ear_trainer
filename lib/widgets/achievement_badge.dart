@@ -5,13 +5,16 @@ class AchievementBadge extends StatelessWidget {
   final String title;
   final String icon;
   final String description;
+  final bool unlocked;
   final VoidCallback onPressed;
+  static const String _lockedIcon = 'assets/icons/locked.svg';
 
   const AchievementBadge({
     super.key,
     required this.description,
     required this.title,
     required this.icon,
+    this.unlocked = false,
     required this.onPressed,
   });
 
@@ -24,7 +27,11 @@ class AchievementBadge extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.red),
+            color: unlocked ? Colors.white10 : Colors.black26,
+            border: Border.all(
+              color: unlocked ? Colors.tealAccent : Colors.white24,
+              width: unlocked ? 1.0 : 0.7,
+            ),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -34,7 +41,7 @@ class AchievementBadge extends StatelessWidget {
                 width: 60,
                 height: 60,
                 child: SvgPicture.asset(
-                  icon,
+                  unlocked ? icon : _lockedIcon,
                   width: 60,
                   height: 60,
                   fit: BoxFit.contain,
@@ -45,6 +52,10 @@ class AchievementBadge extends StatelessWidget {
                       size: 36,
                     ),
                   ),
+                  colorFilter: ColorFilter.mode(
+                    unlocked ? Colors.white : Colors.white38,
+                    BlendMode.srcIn,
+                  ),
                 ),
               ),
               const SizedBox(height: 8),
@@ -54,12 +65,20 @@ class AchievementBadge extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(color: Colors.white, fontSize: 15),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: unlocked ? Colors.white : Colors.white70,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     Text(
                       description,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.white, fontSize: 10),
+                      style: TextStyle(
+                        color: unlocked ? Colors.white70 : Colors.white38,
+                        fontSize: 10,
+                      ),
                     ),
                   ],
                 ),

@@ -5,6 +5,7 @@ import 'package:ear_trainer/widgets/pagebar.dart';
 import 'package:ear_trainer/widgets/choice_button.dart';
 import 'package:ear_trainer/widgets/note_button.dart';
 import 'package:ear_trainer/models/note.dart';
+import 'package:ear_trainer/models/achievements.dart';
 
 class Interval extends StatefulWidget {
   const Interval({super.key});
@@ -17,6 +18,7 @@ class _IntervalState extends State<Interval> {
   @override
   void initState() {
     super.initState();
+    Achievement.markExerciseUsed('interval');
     _nextQuestion();
   }
 
@@ -68,8 +70,20 @@ class _IntervalState extends State<Interval> {
     }
     final bool correct = distance == _correctDistance;
     setState(() {
+      _questionCount++;
       if (correct) _scoreCount++;
+      _streakCount = correct ? _streakCount + 1 : 0;
     });
+
+    if (correct && _scoreCount == 1) {
+      Achievement.unlock('ear_opening');
+    }
+    if (_streakCount >= 3) {
+      Achievement.unlock('interval_instinct');
+    }
+    if (_questionCount >= 10 && _scoreCount >= 10) {
+      Achievement.unlock('flawless');
+    }
 
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -95,6 +109,8 @@ class _IntervalState extends State<Interval> {
   late List<int> _choices;
   static const List<int> _possibleDistances = [2, 3, 4, 5, 7, 9, 11];
   int _scoreCount = 0;
+  int _streakCount = 0;
+  int _questionCount = 0;
   bool _leftPlayed = false;
   bool _rightPlayed = false;
   bool get _canChoose => _leftPlayed && _rightPlayed;
@@ -124,6 +140,11 @@ class _IntervalState extends State<Interval> {
           Text(
             'Score: $_scoreCount',
             style: TextStyle(fontSize: 20, color: Colors.white),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Streak: $_streakCount',
+            style: const TextStyle(fontSize: 16, color: Colors.white70),
           ),
           const SizedBox(height: 80),
           const Text(

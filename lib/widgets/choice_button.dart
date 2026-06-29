@@ -4,11 +4,13 @@ class ChoiceButton extends StatelessWidget {
   final String answer;
   final String? subtitle;
   final VoidCallback onPressed;
+  final bool highlighted;
 
   const ChoiceButton({
     this.subtitle,
     required this.answer,
     required this.onPressed,
+    this.highlighted = false,
     super.key,
   });
 
@@ -18,9 +20,14 @@ class ChoiceButton extends StatelessWidget {
       onTap: onPressed,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white10,
+          color: highlighted
+              ? Colors.tealAccent.withOpacity(0.18)
+              : Colors.white10,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white24, width: 0.5),
+          border: Border.all(
+            color: highlighted ? Colors.tealAccent : Colors.white24,
+            width: highlighted ? 0.8 : 0.5,
+          ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -38,7 +45,10 @@ class ChoiceButton extends StatelessWidget {
               Text(
                 subtitle!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white38),
+                style: TextStyle(
+                  color: highlighted ? Colors.tealAccent : Colors.white38,
+                  fontSize: 13,
+                ),
               ),
             ],
 

@@ -53,8 +53,8 @@ class _ScaleUsedState extends State<ScaleUsed> {
               child: GridView.builder(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  crossAxisSpacing: 20,
-                  mainAxisSpacing: 20,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 30,
                 ),
                 itemCount: Note.notes.length,
                 itemBuilder: (context, index) {

@@ -42,6 +42,7 @@ class _AchievementsState extends State<Achievements> {
                     icon: achievement.icon,
                     title: achievement.title,
                     description: achievement.description,
+                    unlocked: achievement.isUnlocked,
                     onPressed: () {},
                   );
                 },

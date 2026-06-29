@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:ear_trainer/models/note.dart';
+import 'package:ear_trainer/models/achievements.dart';
 import 'package:ear_trainer/widgets/choice_button.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class Scale extends StatefulWidget {
   const Scale({super.key});
@@ -14,15 +17,22 @@ class Scale extends StatefulWidget {
 class _ScaleState extends State<Scale> {
   final _rnd = Random();
   final AudioPlayer _player = AudioPlayer();
+  static const Duration _highlightDuration = Duration(seconds: 5);
 
   late final List<Note> _cMajor; // 8 notes C4..C5
   late int _missingIndex;
   late List<Note> _playable;
   late List<Note> _choices;
+  int _highlightedPlayableIndex = -1;
+  int _highlightedChoiceIndex = -1;
+  int _previewedChoiceIndex = -1;
+  Timer? _highlightResetTimer;
+  Timer? _choiceHighlightResetTimer;
 
   @override
   void initState() {
     super.initState();
+    Achievement.markExerciseUsed('scale');
     // build explicit C major: use your Note.notes values and append C5
     _cMajor = [
       // reuse existing C4..B4 from Note.notes if ordering matches, otherwise explicit:
@@ -39,6 +49,8 @@ class _ScaleState extends State<Scale> {
   }
 
   void _newQuestion() {
+    _highlightResetTimer?.cancel();
+    _choiceHighlightResetTimer?.cancel();
     _missingIndex = _rnd.nextInt(_cMajor.length);
     _playable = List<Note>.from(_cMajor)..removeAt(_missingIndex);
 
@@ -52,6 +64,9 @@ class _ScaleState extends State<Scale> {
       }
     }
     _choices = [correct, ...distractors].toList()..shuffle();
+    _highlightedPlayableIndex = -1;
+    _highlightedChoiceIndex = -1;
+    _previewedChoiceIndex = -1;
     setState(() {});
   }
 
@@ -60,18 +75,65 @@ class _ScaleState extends State<Scale> {
     await _player.play(AssetSource('audio/${n.name}${n.octave}.wav'));
   }
 
+  Future<void> _playPlayable(Note note, int index) async {
+    await _play(note);
+    if (!mounted) return;
+    setState(() {
+      _highlightedPlayableIndex = index;
+    });
+
+    _highlightResetTimer?.cancel();
+    _highlightResetTimer = Timer(_highlightDuration, () {
+      if (!mounted) return;
+      setState(() {
+        _highlightedPlayableIndex = -1;
+      });
+    });
+  }
+
+  Future<void> _previewChoice(Note note, int index) async {
+    if (_previewedChoiceIndex != index) {
+      await _play(note);
+      if (!mounted) return;
+      setState(() {
+        _previewedChoiceIndex = index;
+        _highlightedChoiceIndex = index;
+      });
+      _choiceHighlightResetTimer?.cancel();
+      _choiceHighlightResetTimer = Timer(_highlightDuration, () {
+        if (!mounted) return;
+        setState(() {
+          _highlightedChoiceIndex = -1;
+        });
+      });
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Previewed. Tap the same choice again to choose it.'),
+        ),
+      );
+      return;
+    }
+
+    _answer(note);
+  }
+
   void _answer(Note chosen) {
     final correct = _cMajor[_missingIndex];
     final isCorrect =
         chosen.name == correct.name && chosen.octave == correct.octave;
+    setState(() {
+      _previewedChoiceIndex = -1;
+    });
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           isCorrect
               ? 'Correct'
-              : 'Wrong — correct: ${correct.name}${correct.octave}',
+              : 'Wrong — Correct: ${correct.name}${correct.octave}',
         ),
+        backgroundColor: isCorrect ? Colors.green : Colors.red,
       ),
     );
     if (isCorrect)
@@ -80,6 +142,8 @@ class _ScaleState extends State<Scale> {
 
   @override
   void dispose() {
+    _highlightResetTimer?.cancel();
+    _choiceHighlightResetTimer?.cancel();
     _player.dispose();
     super.dispose();
   }
@@ -114,34 +178,39 @@ class _ScaleState extends State<Scale> {
               spacing: 12,
               runSpacing: 12,
               alignment: WrapAlignment.center,
-              children: _playable.map((n) {
+              children: _playable.asMap().entries.map((entry) {
+                final index = entry.key;
+                final n = entry.value;
+                final isHighlighted = _highlightedPlayableIndex == index;
+
                 return GestureDetector(
-                  onTap: () => _play(n),
+                  onTap: () => _playPlayable(n, index),
                   child: Container(
-                    width: 90,
-                    height: 90,
+                    width: 96,
+                    height: 96,
                     decoration: BoxDecoration(
-                      color: Colors.white10,
+                      color: isHighlighted
+                          ? Colors.tealAccent.withValues(alpha: 0.18)
+                          : Colors.white10,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white24, width: 0.5),
+                      border: Border.all(
+                        color: isHighlighted
+                            ? Colors.tealAccent
+                            : Colors.white24,
+                        width: 0.8,
+                      ),
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '${n.name}${n.octave}',
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white,
-                          ),
+                    child: Center(
+                      child: SvgPicture.asset(
+                        'assets/icons/waves.svg',
+                        width: 56,
+                        height: 56,
+                        fit: BoxFit.contain,
+                        colorFilter: ColorFilter.mode(
+                          isHighlighted ? Colors.tealAccent : Colors.white60,
+                          BlendMode.srcIn,
                         ),
-                        const SizedBox(height: 6),
-                        const Text(
-                          'tap to play',
-                          style: TextStyle(fontSize: 12, color: Colors.white38),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 );
@@ -150,7 +219,7 @@ class _ScaleState extends State<Scale> {
             const SizedBox(height: 24),
             const Text(
               'Which note is missing?',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: Colors.white, fontSize: 18),
             ),
             const SizedBox(height: 12),
 
@@ -158,13 +227,21 @@ class _ScaleState extends State<Scale> {
               spacing: 12,
               runSpacing: 12,
               alignment: WrapAlignment.center,
-              children: _choices.map((c) {
+              children: _choices.asMap().entries.map((entry) {
+                final index = entry.key;
+                final c = entry.value;
+                final isPreviewed = _previewedChoiceIndex == index;
+
                 return SizedBox(
-                  width: 160,
-                  height: 72,
+                  width: 180,
+                  height: 82,
                   child: ChoiceButton(
-                    answer: 'note',
-                    onPressed: () => _answer(c),
+                    answer: '${c.name}${c.octave}',
+                    subtitle: isPreviewed
+                        ? 'tap again to choose'
+                        : 'tap to preview',
+                    highlighted: _highlightedChoiceIndex == index,
+                    onPressed: () => _previewChoice(c, index),
                   ),
                 );
               }).toList(),

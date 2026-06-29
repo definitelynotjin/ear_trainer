@@ -30,8 +30,8 @@ class ScaleUsedButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(s / 2),
           onTap: onPressed,
           child: SizedBox(
-            width: s,
-            height: s,
+            width: s * 0.5,
+            height: s * 0.5,
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),

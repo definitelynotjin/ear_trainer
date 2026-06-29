@@ -1,9 +1,16 @@
+import 'package:shared_preferences/shared_preferences.dart';
+
 class Achievement {
   final String id;
   final String title;
   final String description;
   final String icon;
   bool isUnlocked;
+
+  static final Set<String> _completedExercises = <String>{};
+  static const String _unlockedKey = 'achievement_unlocked_ids';
+  static const String _completedExercisesKey =
+      'achievement_completed_exercises';
 
   Achievement({
     required this.id,
@@ -14,7 +21,7 @@ class Achievement {
     this.isUnlocked = false,
   });
 
-  static List<Achievement> get all => [
+  static final List<Achievement> all = [
     Achievement(
       id: 'first_note',
       title: 'First Note',
@@ -58,4 +65,75 @@ class Achievement {
       icon: 'assets/badges/badge_flawless.svg',
     ),
   ];
+
+  static Achievement? _findById(String id) {
+    for (final achievement in all) {
+      if (achievement.id == id) {
+        return achievement;
+      }
+    }
+    return null;
+  }
+
+  static Future<void> loadState() async {
+    final prefs = await SharedPreferences.getInstance();
+    final unlockedIds = prefs.getStringList(_unlockedKey) ?? <String>[];
+    final completedExercises =
+        prefs.getStringList(_completedExercisesKey) ?? <String>[];
+
+    for (final achievement in all) {
+      achievement.isUnlocked = unlockedIds.contains(achievement.id);
+    }
+
+    _completedExercises
+      ..clear()
+      ..addAll(completedExercises);
+  }
+
+  static Future<void> _saveState() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      _unlockedKey,
+      all
+          .where((achievement) => achievement.isUnlocked)
+          .map((a) => a.id)
+          .toList(),
+    );
+    await prefs.setStringList(
+      _completedExercisesKey,
+      _completedExercises.toList(),
+    );
+  }
+
+  static Future<void> resetAll() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    for (final achievement in all) {
+      achievement.isUnlocked = false;
+    }
+
+    _completedExercises.clear();
+    await prefs.remove(_unlockedKey);
+    await prefs.remove(_completedExercisesKey);
+  }
+
+  static Future<void> unlock(String id) async {
+    final achievement = _findById(id);
+    if (achievement != null) {
+      achievement.isUnlocked = true;
+      await _saveState();
+    }
+  }
+
+  static Future<void> markExerciseUsed(String exerciseId) async {
+    _completedExercises.add(exerciseId);
+    if (_completedExercises.contains('pitch') &&
+        _completedExercises.contains('interval') &&
+        _completedExercises.contains('scale')) {
+      await unlock('all_rounder');
+      return;
+    }
+
+    await _saveState();
+  }
 }
