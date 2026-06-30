@@ -6,6 +6,9 @@ import 'package:ear_trainer/widgets/arrow_button.dart';
 import 'package:ear_trainer/widgets/help.dart';
 import 'package:ear_trainer/models/note.dart';
 import 'package:ear_trainer/models/achievements.dart';
+import 'package:ear_trainer/widgets/feedback_popup.dart';
+import 'package:ear_trainer/models/quiz_session.dart';
+import 'package:ear_trainer/widgets/app_background.dart';
 import 'dart:math' as math;
 
 class Pitch extends StatefulWidget {
@@ -16,16 +19,17 @@ class Pitch extends StatefulWidget {
 }
 
 class _PitchState extends State<Pitch> {
+  static const _accent = Color(0xFFFF6B35);
   final _rnd = math.Random();
   final AudioPlayer _player = AudioPlayer();
   late Note leftNote;
   late Note rightNote;
-  int _scoreCount = 0;
-  int _streakCount = 0;
-  int _questionCount = 0;
+  final _session = QuizSession();
+  static const _key = 'pitch';
   bool _leftPlayed = false;
   bool _rightPlayed = false;
-  bool get _canChoose => _leftPlayed && _rightPlayed;
+  bool _answered = false;
+  bool get _canChoose => _leftPlayed && _rightPlayed && !_answered;
 
   void _nextQuestion() {
     int a = _rnd.nextInt(Note.notes.length);
@@ -38,6 +42,7 @@ class _PitchState extends State<Pitch> {
       rightNote = Note.notes[b];
       _leftPlayed = false;
       _rightPlayed = false;
+      _answered = false;
     });
   }
 
@@ -62,44 +67,33 @@ class _PitchState extends State<Pitch> {
   }
 
   void _score(bool leftChosen) {
+    if (_answered) return;
+    _answered = true;
     final bool correct = leftChosen
         ? leftNote.frequency > rightNote.frequency
         : rightNote.frequency > leftNote.frequency;
-    setState(() {
-      _questionCount++;
-      if (correct) _scoreCount++;
-      _streakCount = correct ? _streakCount + 1 : 0;
-    });
 
-    if (correct && _scoreCount == 1) {
+    _session.recordAnswer(_key, correct);
+    final scoreCount = _session.getScore(_key);
+    final streakCount = _session.getStreak(_key);
+    final questionCount = _session.getQuestion(_key);
+    setState(() {});
+
+    if (correct && scoreCount == 1) {
       Achievement.unlock('first_note');
     }
-    if (_streakCount >= 5) {
+    if (streakCount >= 5) {
       Achievement.unlock('perfect_pitch');
     }
-    if (_questionCount >= 10) {
+    if (questionCount >= 10) {
       Achievement.unlock('pitch_veteran');
-      if (_scoreCount >= 10) {
+      if (scoreCount >= 10) {
         Achievement.unlock('flawless');
       }
     }
 
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(correct ? 'Correct' : 'Incorrect'),
-        backgroundColor: correct ? Colors.green : Colors.red,
-      ),
-    );
+    correct ? FeedbackPopup.success(context) : FeedbackPopup.error(context);
     _nextQuestion();
-  }
-
-  void _chooseLeft() {
-    _score(true);
-  }
-
-  void _chooseRight() {
-    _score(false);
   }
 
   @override
@@ -108,12 +102,20 @@ class _PitchState extends State<Pitch> {
     super.dispose();
   }
 
+  Color get _progressColor {
+    final last = _session.getLastCorrect(_key);
+    if (last == null) return _accent;
+    return last ? Colors.green : Colors.red;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
+      backgroundColor: const Color(0xFF0F3460),
       appBar: AppBar(
         foregroundColor: Colors.white,
-        title: Text(
+        title: const Text(
           'Pitch',
           style: TextStyle(color: Colors.white, fontSize: 20),
         ),
@@ -123,6 +125,7 @@ class _PitchState extends State<Pitch> {
             child: Help(
               helpIcon: 'assets/icons/help.svg',
               size: 25,
+              pageId: 'pitch',
               title: 'Pitch Training',
               content:
                   '1. Listen to the notes\nTap both circle buttons to hear the two different notes.\n\n'
@@ -131,103 +134,139 @@ class _PitchState extends State<Pitch> {
             ),
           ),
         ],
-        backgroundColor: Color.fromARGB(255, 32, 32, 32).withValues(alpha: 0.1),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
-      backgroundColor: Color.fromARGB(255, 32, 32, 32),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: StepProgressBar(
-              totalSteps: 10,
-              onStepChanged: (i) => debugPrint('step $i'),
-            ),
-          ),
-          Text(
-            'Score: $_scoreCount',
-            style: TextStyle(fontSize: 20, color: Colors.white),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Streak: $_streakCount',
-            style: const TextStyle(fontSize: 16, color: Colors.white70),
-          ),
-          const SizedBox(height: 80),
-          const Text(
-            'Which note is higher?',
-            style: TextStyle(fontSize: 20, color: Colors.white70),
-          ),
-          const SizedBox(height: 120),
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      body: AppBackground(
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Column(
               children: [
-                CircleNoteButton(
-                  circleIcon: 'assets/icons/circle.svg',
-                  soundAsset: 'audio/${leftNote.name}${leftNote.octave}.wav',
-                  onPressed: () => _play(leftNote),
+                const SizedBox(height: 60),
+                StepProgressBar(
+                  totalSteps: 10,
+                  currentStep: (_session.getQuestion(_key) - 1).clamp(-1, 9),
+                  activeColor: _progressColor,
+                  onStepChanged: (i) => debugPrint('step $i'),
                 ),
-                const SizedBox(width: 1),
-                CircleNoteButton(
-                  circleIcon: 'assets/icons/circle.svg',
-                  soundAsset: 'audio/${rightNote.name}${rightNote.octave}.wav',
-                  onPressed: () => _play(rightNote),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _Stat(
+                      label: 'Score',
+                      value: '${_session.getScore(_key)}',
+                      color: _accent,
+                    ),
+                    _Stat(
+                      label: 'Streak',
+                      value: '${_session.getStreak(_key)}',
+                      color: _accent,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 40),
+                Text(
+                  'Which note is higher?',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.white.withValues(alpha: 0.7),
+                  ),
+                ),
+                const SizedBox(height: 40),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    CircleNoteButton(
+                      circleIcon: 'assets/icons/circle.svg',
+                      soundAsset:
+                          'audio/${leftNote.name}${leftNote.octave}.wav',
+                      onPressed: () => _play(leftNote),
+                    ),
+                    CircleNoteButton(
+                      circleIcon: 'assets/icons/circle.svg',
+                      soundAsset:
+                          'audio/${rightNote.name}${rightNote.octave}.wav',
+                      onPressed: () => _play(rightNote),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 40),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ArrowButton(
+                      arrowIcon: 'assets/icons/arrow_left.svg',
+                      size: 80,
+                      onPressed: _canChoose
+                          ? _chooseLeft
+                          : () {
+                              FeedbackPopup.info(
+                                context,
+                                title: 'Play both notes first',
+                              );
+                            },
+                    ),
+                    ArrowButton(
+                      arrowIcon: 'assets/icons/arrow_right.svg',
+                      size: 80,
+                      onPressed: _canChoose
+                          ? _chooseRight
+                          : () {
+                              FeedbackPopup.info(
+                                context,
+                                title: 'Play both notes first',
+                              );
+                            },
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-          Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ArrowButton(
-                    arrowIcon: 'assets/icons/arrow_left.svg',
-                    onPressed: _canChoose
-                        ? _chooseLeft
-                        : () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                backgroundColor: Colors.blue,
-                                content: Text('Play both the notes first '),
-                              ),
-                            );
-                          },
-                  ),
-                  // Transform.rotate(angle: -math.pi / 120),
-                  ArrowButton(
-                    arrowIcon: 'assets/icons/arrow_right.svg',
-                    onPressed: _canChoose
-                        ? _chooseRight
-                        : () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                backgroundColor: Colors.blue,
-                                content: Text('Play both the notes first'),
-                              ),
-                            );
-                          },
-                  ),
-                ],
-              ),
-            ],
-          ),
-          // Row(
-          //   children: [
-          //     QuizNavigationButton(
-          //       navIcon: 'assets/icons/arrow_left.svg',
-          //       label: 'rawr',
-          //       onTap: () {},
-          //     ),
+        ),
+      ),
+    );
+  }
 
-          //     QuizNavigationButton(
-          //       navIcon: 'assets/icons/arrow_right.svg',
-          //       label: 'rawr',
-          //       onTap: () {},
-          //     ),
-          //   ],
-          // ),
+  void _chooseLeft() => _score(true);
+  void _chooseRight() => _score(false);
+}
+
+class _Stat extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+  const _Stat({required this.label, required this.value, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
+      ),
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.5),
+              fontSize: 12,
+            ),
+          ),
         ],
       ),
     );

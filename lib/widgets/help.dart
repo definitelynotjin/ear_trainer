@@ -1,3 +1,4 @@
+import 'package:ear_trainer/models/quiz_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -5,13 +6,14 @@ class Help extends StatefulWidget {
   final String helpIcon;
   final String title;
   final String content;
-
+  final String pageId;
   final double size;
 
   const Help({
     required this.helpIcon,
     required this.title,
     required this.content,
+    required this.pageId,
     this.size = 120,
     super.key,
   });
@@ -21,36 +23,57 @@ class Help extends StatefulWidget {
 }
 
 class HelpButtonState extends State<Help> {
+  @override
+  void initState() {
+    super.initState();
+    _checkFirstVisit();
+  }
+
+  Future<void> _checkFirstVisit() async {
+    final first = await QuizSession().isFirstVisit(widget.pageId);
+    if (first && mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _showHelpModal());
+    }
+  }
+
   void _showHelpModal() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          // backgroundColor: const Color.fromARGB(255, 42, 42, 42),
-          backgroundColor: Colors.white,
+          backgroundColor: const Color(0xFF1A1A2E),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(
+              color: Colors.tealAccent.withValues(alpha: 0.3),
+              width: 1,
+            ),
           ),
           title: Text(
             widget.title,
             style: const TextStyle(
-              color: Colors.red,
+              color: Colors.tealAccent,
               fontWeight: FontWeight.bold,
+              fontSize: 18,
             ),
           ),
           content: Text(
             widget.content,
-            style: const TextStyle(color: Colors.blue, fontSize: 16),
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 14,
+              height: 1.4,
+            ),
           ),
           actions: [
             TextButton(
+              style: TextButton.styleFrom(foregroundColor: Colors.tealAccent),
               onPressed: () {
                 Navigator.of(context).pop();
               },
               child: const Text(
-                'Got it!',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.green, fontSize: 16),
+                'Got it',
+                style: TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
           ],
@@ -76,6 +99,7 @@ class HelpButtonState extends State<Help> {
               width: s * 2,
               height: s * 2,
               fit: BoxFit.fill,
+              color: Colors.white70,
             ),
           ),
         ),

@@ -6,329 +6,574 @@ import 'package:ear_trainer/pages/scale.dart';
 import 'package:ear_trainer/pages/achievements.dart';
 import 'package:ear_trainer/pages/scaleused.dart';
 import 'package:ear_trainer/models/achievements.dart';
+import 'package:ear_trainer/models/quiz_session.dart';
+import 'package:ear_trainer/widgets/app_background.dart';
+import 'package:ear_trainer/widgets/feedback_popup.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
-// Enable with: --dart-define=ENABLE_ADMIN_FAB=true
 const bool _enableAdminFab = bool.fromEnvironment(
   'ENABLE_ADMIN_FAB',
   defaultValue: false,
 );
 
-class FrontPage extends StatelessWidget {
+class FrontPage extends StatefulWidget {
   const FrontPage({super.key});
+
+  @override
+  State<FrontPage> createState() => _FrontPageState();
+}
+
+class _FrontPageState extends State<FrontPage> {
+  @override
+  void initState() {
+    super.initState();
+    QuizSession().load();
+  }
+
+  int _progressFor(String key) => QuizSession().getQuestion(key);
+  bool get _intervalUnlocked => _progressFor('pitch') >= 10;
+  bool get _scaleUnlocked => _progressFor('interval') >= 5;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color.fromARGB(255, 208, 88, 88),
-              Color.fromARGB(255, 112, 62, 151),
-              Color.fromARGB(255, 64, 153, 145),
-              // Color.fromARGB(255, 102, 192, 79),
-            ],
-          ),
-        ),
+      backgroundColor: const Color(0xFF0F3460),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          await _showSettingsSheet(context);
+          if (mounted) setState(() {});
+        },
+        backgroundColor: Colors.white.withValues(alpha: 0.15),
+        child: const Icon(Icons.settings, color: Colors.white),
+      ),
+      body: AppBackground(
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 22, 14, 14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 120),
-                Text(
-                  'Ear Trainer',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    fontWeight: FontWeight.w500,
-                    fontSize: 40,
-                  ),
-                ),
-                const SizedBox(height: 120),
-
-                Expanded(
-                  child: ListView(
-                    padding: EdgeInsets.zero,
+          child: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 40, bottom: 8),
+                  child: Column(
                     children: [
-                      SizedBox(
-                        child: MenuButton(
-                          iconColor: Colors.redAccent,
-                          label: 'Pitch',
-                          iconPath: 'assets/icons/single_note.svg',
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const Pitch()),
-                          ),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.08),
+                          shape: BoxShape.circle,
+                        ),
+                        child: SvgPicture.asset(
+                          'assets/icons/ear_trainer.svg',
+                          width: 56,
+                          height: 56,
+                          color: Colors.tealAccent,
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        child: MenuButton(
-                          iconColor: Colors.cyanAccent,
-                          label: 'Interval',
-                          iconPath: 'assets/icons/double_note.svg',
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const interval_page.Interval(),
-                            ),
-                          ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Ear Trainer',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.95),
+                          fontWeight: FontWeight.w700,
+                          fontSize: 32,
+                          letterSpacing: 1.2,
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        child: MenuButton(
-                          label: 'Scale',
-                          iconColor: Colors.greenAccent,
-                          iconPath: 'assets/icons/piano.svg',
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const Scale()),
-                          ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Train your musical ear',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.5),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w300,
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        child: MenuButton(
-                          iconColor: Colors.purpleAccent,
-                          label: 'Achievements',
-                          iconPath: 'assets/icons/trophy.svg',
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const Achievements(),
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      SizedBox(
-                        child: MenuButton(
-                          iconColor: Colors.orangeAccent,
-                          label: 'Scale Used',
-                          iconPath: 'assets/icons/cadence.svg',
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const ScaleUsed(),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 70),
-                      // SizedBox(
-                      //   child: Center(
-                      //     child: MenuButton(
-                      //       label: 'About the App',
-                      //       iconPath: 'assets/icons/cadence.svg',
-                      //       onTap: () => Navigator.push(
-                      //         context,
-                      //         MaterialPageRoute(
-                      //           builder: (_) => const AboutMe(),
-                      //         ),
-                      //       ),
-                      //     ),
-                      //   ),
-                      // ),
-                      // if (_enableAdminFab)
-                      FloatingActionButton(
-                        onPressed: () {
-                          showModalBottomSheet(
-                            context: context,
-                            backgroundColor: const Color.fromARGB(
-                              255,
-                              32,
-                              32,
-                              32,
-                            ),
-                            builder: (context) {
-                              return Padding(
-                                padding: const EdgeInsets.all(20),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    const Text(
-                                      'Settings',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                    const SizedBox(height: 16),
-                                    ElevatedButton.icon(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.redAccent,
-                                        foregroundColor: Colors.white,
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 14,
-                                        ),
-                                      ),
-                                      onPressed: () async {
-                                        final shouldReset = await showDialog<bool>(
-                                          context: context,
-                                          builder: (dialogContext) {
-                                            return AlertDialog(
-                                              backgroundColor:
-                                                  const Color.fromARGB(
-                                                    255,
-                                                    32,
-                                                    32,
-                                                    32,
-                                                  ),
-                                              title: const Text(
-                                                'Reset achievements?',
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                              content: const Text(
-                                                'This will clear all unlocked achievements and exercise progress.',
-                                                style: TextStyle(
-                                                  color: Colors.white70,
-                                                ),
-                                              ),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.pop(
-                                                        dialogContext,
-                                                        false,
-                                                      ),
-                                                  child: const Text('Cancel'),
-                                                ),
-                                                TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.pop(
-                                                        dialogContext,
-                                                        true,
-                                                      ),
-                                                  child: const Text('Reset'),
-                                                ),
-                                              ],
-                                            );
-                                          },
-                                        );
-
-                                        if (shouldReset == true) {
-                                          await Achievement.resetAll();
-                                          if (context.mounted) {
-                                            Navigator.pop(context);
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              const SnackBar(
-                                                content: Text(
-                                                  'Achievements reset',
-                                                ),
-                                                backgroundColor: Colors.green,
-                                              ),
-                                            );
-                                          }
-                                        }
-                                      },
-                                      icon: const Icon(Icons.restart_alt),
-                                      label: const Text('Reset Achievements'),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    ElevatedButton.icon(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.green,
-                                        foregroundColor: Colors.white,
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 14,
-                                        ),
-                                      ),
-                                      onPressed: () async {
-                                        final shouldUnlock = await showDialog<bool>(
-                                          context: context,
-                                          builder: (dialogContext) {
-                                            return AlertDialog(
-                                              backgroundColor:
-                                                  const Color.fromARGB(
-                                                    255,
-                                                    32,
-                                                    32,
-                                                    32,
-                                                  ),
-                                              title: const Text(
-                                                'Unlock all achievements?',
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                              content: const Text(
-                                                'This will unlock every available achievement.',
-                                                style: TextStyle(
-                                                  color: Colors.white70,
-                                                ),
-                                              ),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.pop(
-                                                        dialogContext,
-                                                        false,
-                                                      ),
-                                                  child: const Text('Cancel'),
-                                                ),
-                                                TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.pop(
-                                                        dialogContext,
-                                                        true,
-                                                      ),
-                                                  child: const Text('Unlock'),
-                                                ),
-                                              ],
-                                            );
-                                          },
-                                        );
-
-                                        if (shouldUnlock == true) {
-                                          await Achievement.unlockAll();
-                                          if (context.mounted) {
-                                            Navigator.pop(context);
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              const SnackBar(
-                                                content: Text(
-                                                  'All achievements unlocked',
-                                                ),
-                                                backgroundColor: Colors.green,
-                                              ),
-                                            );
-                                          }
-                                        }
-                                      },
-                                      icon: const Icon(Icons.lock_open),
-                                      label: const Text(
-                                        'Unlock All Achievements',
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          );
-                        },
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    childAspectRatio: 0.85,
+                  ),
+                  delegate: SliverChildListDelegate([
+                    _GridCard(
+                      label: 'Pitch',
+                      iconPath: 'assets/icons/single_note.svg',
+                      accentColor: const Color(0xFFFF6B35),
+                      subtitle: 'Higher or lower?',
+                      progress: _progressFor('pitch'),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const Pitch()),
+                      ).then((_) => setState(() {})),
+                    ),
+                    _GridCard(
+                      label: 'Interval',
+                      iconPath: 'assets/icons/double_note.svg',
+                      accentColor: const Color(0xFF00B8A9),
+                      subtitle: _intervalUnlocked
+                          ? 'Distance between notes'
+                          : 'Complete 10 Pitch',
+                      progress: _progressFor('interval'),
+                      locked: !_intervalUnlocked,
+                      onTap: _intervalUnlocked
+                          ? () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const interval_page.Interval(),
+                              ),
+                            ).then((_) => setState(() {}))
+                          : () => FeedbackPopup.info(
+                              context,
+                              title: 'Complete 10 Pitch questions first',
+                            ),
+                    ),
+                    _GridCard(
+                      label: 'Scale',
+                      iconPath: 'assets/icons/waves.svg',
+                      accentColor: const Color(0xFFF8B400),
+                      subtitle: _scaleUnlocked
+                          ? 'Find missing note'
+                          : 'Complete 5 Interval',
+                      progress: _progressFor('scale'),
+                      locked: !_scaleUnlocked,
+                      onTap: _scaleUnlocked
+                          ? () => Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const Scale()),
+                            ).then((_) => setState(() {}))
+                          : () => FeedbackPopup.info(
+                              context,
+                              title: 'Complete 5 Interval questions first',
+                            ),
+                    ),
+                    _GridCard(
+                      label: 'Achievements',
+                      iconPath: 'assets/icons/trophy.svg',
+                      accentColor: const Color(0xFFB983FF),
+                      subtitle: 'Your badges',
+                      progress: Achievement.all
+                          .where((a) => a.isUnlocked)
+                          .length,
+                      totalSteps: Achievement.all.length,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const Achievements()),
+                      ).then((_) => setState(() {})),
+                    ),
+                  ]),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: _WideCard(
+                    label: 'Scale Used',
+                    iconPath: 'assets/icons/cadence.svg',
+                    accentColor: const Color(0xFF6C5CE7),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ScaleUsed()),
+                    ),
+                  ),
+                ),
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 80)),
+            ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showSettingsSheet(BuildContext context) async {
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1A1A2E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Settings',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFE94560),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () async {
+                  final shouldReset = await showDialog<bool>(
+                    context: context,
+                    builder: (dialogContext) {
+                      return AlertDialog(
+                        backgroundColor: const Color(0xFF1A1A2E),
+                        title: const Text(
+                          'Reset achievements?',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        content: const Text(
+                          'This will clear all unlocked achievements and exercise progress.',
+                          style: TextStyle(color: Colors.white70),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () =>
+                                Navigator.pop(dialogContext, false),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(dialogContext, true),
+                            child: const Text('Reset'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+
+                  if (shouldReset == true) {
+                    await Achievement.resetAll();
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                    }
+                  }
+                },
+                icon: const Icon(Icons.restart_alt),
+                label: const Text('Reset Achievements'),
+              ),
+              const SizedBox(height: 8),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00B8A9),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () async {
+                  final shouldUnlock = await showDialog<bool>(
+                    context: context,
+                    builder: (dialogContext) {
+                      return AlertDialog(
+                        backgroundColor: const Color(0xFF1A1A2E),
+                        title: const Text(
+                          'Unlock all achievements?',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        content: const Text(
+                          'This will unlock every available achievement.',
+                          style: TextStyle(color: Colors.white70),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () =>
+                                Navigator.pop(dialogContext, false),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(dialogContext, true),
+                            child: const Text('Unlock'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+
+                  if (shouldUnlock == true) {
+                    await Achievement.unlockAll();
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                    }
+                  }
+                },
+                icon: const Icon(Icons.lock_open),
+                label: const Text('Unlock All Achievements'),
+              ),
+              const SizedBox(height: 8),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFF8B400),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () async {
+                  final shouldClear = await showDialog<bool>(
+                    context: context,
+                    builder: (dialogContext) {
+                      return AlertDialog(
+                        backgroundColor: const Color(0xFF1A1A2E),
+                        title: const Text(
+                          'Clear progress?',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        content: const Text(
+                          'This will reset all quiz scores and streaks.',
+                          style: TextStyle(color: Colors.white70),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () =>
+                                Navigator.pop(dialogContext, false),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(dialogContext, true),
+                            child: const Text('Clear'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+
+                  if (shouldClear == true) {
+                    await QuizSession().resetAll();
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                    }
+                  }
+                },
+                icon: const Icon(Icons.delete_outline),
+                label: const Text('Clear Progress'),
+              ),
+              const SizedBox(height: 8),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFE94560),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () {
+                  QuizSession().setQuestion('pitch', 10);
+                  Navigator.pop(context);
+                },
+                icon: const Icon(Icons.lock_open),
+                label: const Text('Unlock Interval'),
+              ),
+              const SizedBox(height: 8),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00B8A9),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () {
+                  QuizSession().setQuestion('interval', 5);
+                  Navigator.pop(context);
+                },
+                icon: const Icon(Icons.lock_open),
+                label: const Text('Unlock Scale'),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _GridCard extends StatelessWidget {
+  final String label;
+  final String iconPath;
+  final Color accentColor;
+  final String subtitle;
+  final int progress;
+  final int totalSteps;
+  final bool locked;
+  final VoidCallback onTap;
+
+  const _GridCard({
+    required this.label,
+    required this.iconPath,
+    required this.accentColor,
+    required this.subtitle,
+    this.progress = 0,
+    this.totalSteps = 10,
+    this.locked = false,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: locked ? 0.03 : 0.06),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: accentColor.withValues(alpha: locked ? 0.15 : 0.3),
+            width: 1,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: locked ? 0.08 : 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: locked
+                    ? Icon(
+                        Icons.lock_outline,
+                        color: accentColor.withValues(alpha: 0.6),
+                        size: 32,
+                      )
+                    : SvgPicture.asset(
+                        iconPath,
+                        width: 32,
+                        height: 32,
+                        color: accentColor,
+                      ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                label,
+                style: TextStyle(
+                  color: locked
+                      ? Colors.white.withValues(alpha: 0.4)
+                      : Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: locked
+                      ? accentColor.withValues(alpha: 0.7)
+                      : Colors.white.withValues(alpha: 0.5),
+                  fontSize: 12,
+                ),
+              ),
+              if (!locked) ...[
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(totalSteps, (i) {
+                    final filled = i < progress;
+                    return Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: filled
+                            ? Colors.white54
+                            : Colors.white.withValues(alpha: 0.15),
+                      ),
+                    );
+                  }),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WideCard extends StatelessWidget {
+  final String label;
+  final String iconPath;
+  final Color accentColor;
+  final VoidCallback onTap;
+
+  const _WideCard({
+    required this.label,
+    required this.iconPath,
+    required this.accentColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: accentColor.withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: accentColor.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: SvgPicture.asset(
+                iconPath,
+                width: 24,
+                height: 24,
+                color: accentColor,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: Colors.white.withValues(alpha: 0.4),
+            ),
+          ],
         ),
       ),
     );

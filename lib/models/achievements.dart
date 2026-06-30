@@ -1,4 +1,4 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ear_trainer/models/quiz_session.dart';
 
 class Achievement {
   final String id;
@@ -8,16 +8,12 @@ class Achievement {
   bool isUnlocked;
 
   static final Set<String> _completedExercises = <String>{};
-  static const String _unlockedKey = 'achievement_unlocked_ids';
-  static const String _completedExercisesKey =
-      'achievement_completed_exercises';
 
   Achievement({
     required this.id,
     required this.title,
     required this.description,
     required this.icon,
-
     this.isUnlocked = false,
   });
 
@@ -82,59 +78,83 @@ class Achievement {
   }
 
   static Future<void> loadState() async {
-    final prefs = await SharedPreferences.getInstance();
-    final unlockedIds = prefs.getStringList(_unlockedKey) ?? <String>[];
-    final completedExercises =
-        prefs.getStringList(_completedExercisesKey) ?? <String>[];
+    final db = await QuizSession().database();
 
+    // Load achievements
+    final achRows = await db.query('achievements');
+    final unlockedIds = <String>{};
+    for (final r in achRows) {
+      if ((r['unlocked'] as int) == 1) {
+        unlockedIds.add(r['id'] as String);
+      }
+    }
     for (final achievement in all) {
       achievement.isUnlocked = unlockedIds.contains(achievement.id);
     }
 
+    // Load exercises
+    final exRows = await db.query('exercises');
     _completedExercises
       ..clear()
-      ..addAll(completedExercises);
+      ..addAll(
+        exRows
+            .where((r) => (r['used'] as int) == 1)
+            .map((r) => r['id'] as String),
+      );
   }
 
-  static Future<void> _saveState() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(
-      _unlockedKey,
-      all
-          .where((achievement) => achievement.isUnlocked)
-          .map((a) => a.id)
-          .toList(),
-    );
-    await prefs.setStringList(
-      _completedExercisesKey,
-      _completedExercises.toList(),
-    );
+  static Future<void> _saveUnlocked() async {
+    final db = await QuizSession().database();
+    final batch = db.batch();
+    // Clear + reinsert unlocked
+    batch.delete('achievements');
+    for (final a in all.where((a) => a.isUnlocked)) {
+      batch.insert('achievements', {'id': a.id, 'unlocked': 1});
+    }
+    await batch.commit(noResult: true);
+  }
+
+  static Future<void> _saveExercises() async {
+    final db = await QuizSession().database();
+    final batch = db.batch();
+    batch.delete('exercises');
+    for (final e in _completedExercises) {
+      batch.insert('exercises', {'id': e, 'used': 1});
+    }
+    await batch.commit(noResult: true);
   }
 
   static Future<void> resetAll() async {
-    final prefs = await SharedPreferences.getInstance();
-
+    final db = await QuizSession().database();
     for (final achievement in all) {
       achievement.isUnlocked = false;
     }
-
     _completedExercises.clear();
-    await prefs.remove(_unlockedKey);
-    await prefs.remove(_completedExercisesKey);
+    await db.delete('achievements');
+    await db.delete('exercises');
   }
 
   static Future<void> unlockAll() async {
     for (final achievement in all) {
       achievement.isUnlocked = true;
     }
-    await _saveState();
+    await _saveUnlocked();
   }
 
   static Future<void> unlock(String id) async {
     final achievement = _findById(id);
     if (achievement != null) {
       achievement.isUnlocked = true;
-      await _saveState();
+      await _saveUnlocked();
+      // Check completionist
+      if (all.every((a) => a.isUnlocked) &&
+          _findById('completionist') != null) {
+        final c = _findById('completionist')!;
+        if (!c.isUnlocked) {
+          c.isUnlocked = true;
+          await _saveUnlocked();
+        }
+      }
     }
   }
 
@@ -146,7 +166,6 @@ class Achievement {
       await unlock('all_rounder');
       return;
     }
-
-    await _saveState();
+    await _saveExercises();
   }
 }
