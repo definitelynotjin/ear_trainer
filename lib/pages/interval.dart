@@ -6,6 +6,7 @@ import 'package:ear_trainer/widgets/choice_button.dart';
 import 'package:ear_trainer/widgets/note_button.dart';
 import 'package:ear_trainer/models/note.dart';
 import 'package:ear_trainer/models/achievements.dart';
+import 'package:ear_trainer/widgets/help.dart';
 
 class Interval extends StatefulWidget {
   const Interval({super.key});
@@ -123,7 +124,20 @@ class _IntervalState extends State<Interval> {
           'Interval',
           style: TextStyle(color: Colors.white, fontSize: 20),
         ),
-        actions: [],
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 20),
+            child: Help(
+              helpIcon: 'assets/icons/help.svg',
+              size: 25,
+              title: 'Interval Training',
+              content:
+                  '1. Listen to the notes\nTap both circle buttons to hear the two different notes.\n\n'
+                  '2. Calculate the distance\nListen closely to the gap between the two pitches. How many semitones (notes) apart are they?\n\n'
+                  '3. Make your choice\nSelect the correct number from the grid below. Remember, you must listen to both notes first!',
+            ),
+          ),
+        ],
         backgroundColor: Color.fromARGB(255, 32, 32, 32).withValues(alpha: 0.1),
       ),
       backgroundColor: Color.fromARGB(255, 32, 32, 32),

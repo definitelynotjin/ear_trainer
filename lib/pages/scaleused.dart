@@ -32,38 +32,66 @@ class _ScaleUsedState extends State<ScaleUsed> {
     return Scaffold(
       appBar: AppBar(
         foregroundColor: Colors.white,
-        title: Text(
+        title: const Text(
           'Scale Used',
           style: TextStyle(color: Colors.white, fontSize: 20),
         ),
-        backgroundColor: Color.fromARGB(255, 32, 32, 32),
+        backgroundColor: const Color.fromARGB(255, 32, 32, 32),
       ),
-      backgroundColor: Color.fromARGB(255, 32, 32, 32),
+      backgroundColor: const Color.fromARGB(255, 32, 32, 32),
       body: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(
+          20,
+        ), // Left and right "walls" are defined here
         child: Column(
           children: [
-            const SizedBox(height: 80),
-            Text(
+            const SizedBox(height: 40),
+            const Text(
               'C Major Scale',
               style: TextStyle(fontSize: 30, color: Colors.white),
             ),
-            const SizedBox(height: 80),
+            const SizedBox(height: 20),
             Expanded(
-              child: GridView.builder(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 30,
-                ),
-                itemCount: Note.notes.length,
-                itemBuilder: (context, index) {
-                  final note = Note.notes[index];
-                  return ScaleUsedButton(
-                    noteName: note.name,
-                    circleIcon: 'assets/icons/waves.svg',
-                    soundAsset: 'assets/audio/${note.name}${note.octave}.wav',
-                    onPressed: () => _play(note),
+              // LayoutBuilder looks at the actual layout constraints of the phone screen
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  const double buttonSize = 75.0;
+                  final int totalNotes = Note.notes.length;
+
+                  // Calculate exactly how much horizontal room we have to move the button
+                  final double maxAvailableWidth =
+                      constraints.maxWidth - buttonSize;
+
+                  // Divide that width evenly by the total intervals (8 notes means 7 gaps)
+                  final double horizontalStep =
+                      maxAvailableWidth / (totalNotes - 1);
+
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: List.generate(totalNotes, (index) {
+                      final int reversedIndex = totalNotes - 1 - index;
+                      final note = Note.notes[reversedIndex];
+
+                      return Padding(
+                        // Dynamic math:
+                        // C4 (reversedIndex 0) -> left padding is 0.0 (Hugs Left Wall)
+                        // C5 (reversedIndex 7) -> left padding is max available width (Hugs Right Wall)
+                        padding: EdgeInsets.only(
+                          left: reversedIndex * horizontalStep,
+                        ),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: ScaleUsedButton(
+                            size: buttonSize,
+                            noteName: '${note.name}${note.octave}',
+                            circleIcon: 'assets/icons/waves.svg',
+                            soundAsset:
+                                'assets/audio/${note.name}${note.octave}.wav',
+                            onPressed: () => _play(note),
+                          ),
+                        ),
+                      );
+                    }),
                   );
                 },
               ),

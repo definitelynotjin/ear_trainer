@@ -14,7 +14,7 @@ class ScaleUsedButton extends StatelessWidget {
     required this.soundAsset,
     required this.onPressed,
     required this.noteName,
-    this.size = 120,
+    this.size = 41,
     super.key,
   });
 
@@ -27,11 +27,11 @@ class ScaleUsedButton extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(s / 2),
+          borderRadius: BorderRadius.circular(s / 1),
           onTap: onPressed,
           child: SizedBox(
-            width: s * 0.5,
-            height: s * 0.5,
+            width: s,
+            height: s,
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
@@ -42,8 +42,8 @@ class ScaleUsedButton extends StatelessWidget {
                 children: [
                   SvgPicture.asset(
                     'assets/icons/waves.svg',
-                    width: s * 0.8,
-                    height: s * 0.8,
+                    width: s * 0.4,
+                    height: s * 0.4,
                     fit: BoxFit.contain,
                     color: Colors.white60,
                   ),

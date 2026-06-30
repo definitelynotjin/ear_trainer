@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:ear_trainer/widgets/pagebar.dart';
 import 'package:ear_trainer/widgets/note_button.dart';
 import 'package:ear_trainer/widgets/arrow_button.dart';
-import 'package:ear_trainer/widgets/quiz_navigation_button.dart';
+import 'package:ear_trainer/widgets/help.dart';
 import 'package:ear_trainer/models/note.dart';
 import 'package:ear_trainer/models/achievements.dart';
 import 'dart:math' as math;
@@ -117,7 +117,20 @@ class _PitchState extends State<Pitch> {
           'Pitch',
           style: TextStyle(color: Colors.white, fontSize: 20),
         ),
-        actions: [],
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 20),
+            child: Help(
+              helpIcon: 'assets/icons/help.svg',
+              size: 25,
+              title: 'Pitch Training',
+              content:
+                  '1. Listen to the notes\nTap both circle buttons to hear the two different notes.\n\n'
+                  '2. Compare the pitch\nDecide which of the two notes sounds HIGHER.\n\n'
+                  '3. Make your choice\nTap the LEFT arrow if the first note is higher, or tap the RIGHT arrow if the second note is higher.',
+            ),
+          ),
+        ],
         backgroundColor: Color.fromARGB(255, 32, 32, 32).withValues(alpha: 0.1),
       ),
       backgroundColor: Color.fromARGB(255, 32, 32, 32),

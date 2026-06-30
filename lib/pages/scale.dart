@@ -5,6 +5,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:ear_trainer/models/note.dart';
 import 'package:ear_trainer/models/achievements.dart';
 import 'package:ear_trainer/widgets/choice_button.dart';
+import 'package:ear_trainer/widgets/help.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class Scale extends StatefulWidget {
@@ -153,6 +154,20 @@ class _ScaleState extends State<Scale> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Scale'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 20),
+            child: Help(
+              helpIcon: 'assets/icons/help.svg',
+              size: 25,
+              title: 'How to Play: Scale',
+              content:
+                  '1. Listen to the scale\nTap the note buttons at the top to hear the notes of the C Major scale. One note has been removed!\n\n'
+                  '2. Find the missing note\nListen carefully to the gaps in the scale. Which note is missing?\n\n'
+                  '3. Make your choice\nTap a choice button at the bottom once to preview its sound. Tap the exact same button a SECOND time to submit it as your final answer.',
+            ),
+          ),
+        ],
         backgroundColor: const Color.fromARGB(255, 32, 32, 32),
         foregroundColor: const Color.fromARGB(255, 255, 255, 255),
       ),

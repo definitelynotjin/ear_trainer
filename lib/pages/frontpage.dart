@@ -136,203 +136,193 @@ class FrontPage extends StatelessWidget {
                       //     ),
                       //   ),
                       // ),
-                      if (_enableAdminFab)
-                        FloatingActionButton(
-                          onPressed: () {
-                            showModalBottomSheet(
-                              context: context,
-                              backgroundColor: const Color.fromARGB(
-                                255,
-                                32,
-                                32,
-                                32,
-                              ),
-                              builder: (context) {
-                                return Padding(
-                                  padding: const EdgeInsets.all(20),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      const Text(
-                                        'Settings',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 22,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                        textAlign: TextAlign.center,
+                      // if (_enableAdminFab)
+                      FloatingActionButton(
+                        onPressed: () {
+                          showModalBottomSheet(
+                            context: context,
+                            backgroundColor: const Color.fromARGB(
+                              255,
+                              32,
+                              32,
+                              32,
+                            ),
+                            builder: (context) {
+                              return Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    const Text(
+                                      'Settings',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w600,
                                       ),
-                                      const SizedBox(height: 16),
-                                      ElevatedButton.icon(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.redAccent,
-                                          foregroundColor: Colors.white,
-                                          padding: const EdgeInsets.symmetric(
-                                            vertical: 14,
-                                          ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    ElevatedButton.icon(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.redAccent,
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 14,
                                         ),
-                                        onPressed: () async {
-                                          final shouldReset =
-                                              await showDialog<bool>(
-                                                context: context,
-                                                builder: (dialogContext) {
-                                                  return AlertDialog(
-                                                    backgroundColor:
-                                                        const Color.fromARGB(
-                                                          255,
-                                                          32,
-                                                          32,
-                                                          32,
-                                                        ),
-                                                    title: const Text(
-                                                      'Reset achievements?',
-                                                      style: TextStyle(
-                                                        color: Colors.white,
-                                                      ),
-                                                    ),
-                                                    content: const Text(
-                                                      'This will clear all unlocked achievements and exercise progress.',
-                                                      style: TextStyle(
-                                                        color: Colors.white70,
-                                                      ),
-                                                    ),
-                                                    actions: [
-                                                      TextButton(
-                                                        onPressed: () =>
-                                                            Navigator.pop(
-                                                              dialogContext,
-                                                              false,
-                                                            ),
-                                                        child: const Text(
-                                                          'Cancel',
-                                                        ),
-                                                      ),
-                                                      TextButton(
-                                                        onPressed: () =>
-                                                            Navigator.pop(
-                                                              dialogContext,
-                                                              true,
-                                                            ),
-                                                        child: const Text(
-                                                          'Reset',
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  );
-                                                },
-                                              );
-
-                                          if (shouldReset == true) {
-                                            await Achievement.resetAll();
-                                            if (context.mounted) {
-                                              Navigator.pop(context);
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                const SnackBar(
-                                                  content: Text(
-                                                    'Achievements reset',
+                                      ),
+                                      onPressed: () async {
+                                        final shouldReset = await showDialog<bool>(
+                                          context: context,
+                                          builder: (dialogContext) {
+                                            return AlertDialog(
+                                              backgroundColor:
+                                                  const Color.fromARGB(
+                                                    255,
+                                                    32,
+                                                    32,
+                                                    32,
                                                   ),
-                                                  backgroundColor: Colors.green,
+                                              title: const Text(
+                                                'Reset achievements?',
+                                                style: TextStyle(
+                                                  color: Colors.white,
                                                 ),
-                                              );
-                                            }
-                                          }
-                                        },
-                                        icon: const Icon(Icons.restart_alt),
-                                        label: const Text('Reset Achievements'),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      ElevatedButton.icon(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.green,
-                                          foregroundColor: Colors.white,
-                                          padding: const EdgeInsets.symmetric(
-                                            vertical: 14,
-                                          ),
-                                        ),
-                                        onPressed: () async {
-                                          final shouldUnlock =
-                                              await showDialog<bool>(
-                                                context: context,
-                                                builder: (dialogContext) {
-                                                  return AlertDialog(
-                                                    backgroundColor:
-                                                        const Color.fromARGB(
-                                                          255,
-                                                          32,
-                                                          32,
-                                                          32,
-                                                        ),
-                                                    title: const Text(
-                                                      'Unlock all achievements?',
-                                                      style: TextStyle(
-                                                        color: Colors.white,
+                                              ),
+                                              content: const Text(
+                                                'This will clear all unlocked achievements and exercise progress.',
+                                                style: TextStyle(
+                                                  color: Colors.white70,
+                                                ),
+                                              ),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(
+                                                        dialogContext,
+                                                        false,
                                                       ),
-                                                    ),
-                                                    content: const Text(
-                                                      'This will unlock every available achievement.',
-                                                      style: TextStyle(
-                                                        color: Colors.white70,
+                                                  child: const Text('Cancel'),
+                                                ),
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(
+                                                        dialogContext,
+                                                        true,
                                                       ),
-                                                    ),
-                                                    actions: [
-                                                      TextButton(
-                                                        onPressed: () =>
-                                                            Navigator.pop(
-                                                              dialogContext,
-                                                              false,
-                                                            ),
-                                                        child: const Text(
-                                                          'Cancel',
-                                                        ),
-                                                      ),
-                                                      TextButton(
-                                                        onPressed: () =>
-                                                            Navigator.pop(
-                                                              dialogContext,
-                                                              true,
-                                                            ),
-                                                        child: const Text(
-                                                          'Unlock',
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  );
-                                                },
-                                              );
+                                                  child: const Text('Reset'),
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
 
-                                          if (shouldUnlock == true) {
-                                            await Achievement.unlockAll();
-                                            if (context.mounted) {
-                                              Navigator.pop(context);
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                const SnackBar(
-                                                  content: Text(
-                                                    'All achievements unlocked',
-                                                  ),
-                                                  backgroundColor: Colors.green,
+                                        if (shouldReset == true) {
+                                          await Achievement.resetAll();
+                                          if (context.mounted) {
+                                            Navigator.pop(context);
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'Achievements reset',
                                                 ),
-                                              );
-                                            }
+                                                backgroundColor: Colors.green,
+                                              ),
+                                            );
                                           }
-                                        },
-                                        icon: const Icon(Icons.lock_open),
-                                        label: const Text(
-                                          'Unlock All Achievements',
+                                        }
+                                      },
+                                      icon: const Icon(Icons.restart_alt),
+                                      label: const Text('Reset Achievements'),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    ElevatedButton.icon(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.green,
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 14,
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        ),
+                                      onPressed: () async {
+                                        final shouldUnlock = await showDialog<bool>(
+                                          context: context,
+                                          builder: (dialogContext) {
+                                            return AlertDialog(
+                                              backgroundColor:
+                                                  const Color.fromARGB(
+                                                    255,
+                                                    32,
+                                                    32,
+                                                    32,
+                                                  ),
+                                              title: const Text(
+                                                'Unlock all achievements?',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                              content: const Text(
+                                                'This will unlock every available achievement.',
+                                                style: TextStyle(
+                                                  color: Colors.white70,
+                                                ),
+                                              ),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(
+                                                        dialogContext,
+                                                        false,
+                                                      ),
+                                                  child: const Text('Cancel'),
+                                                ),
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(
+                                                        dialogContext,
+                                                        true,
+                                                      ),
+                                                  child: const Text('Unlock'),
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
+
+                                        if (shouldUnlock == true) {
+                                          await Achievement.unlockAll();
+                                          if (context.mounted) {
+                                            Navigator.pop(context);
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'All achievements unlocked',
+                                                ),
+                                                backgroundColor: Colors.green,
+                                              ),
+                                            );
+                                          }
+                                        }
+                                      },
+                                      icon: const Icon(Icons.lock_open),
+                                      label: const Text(
+                                        'Unlock All Achievements',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ),
