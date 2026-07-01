@@ -78,7 +78,7 @@ class _IntervalState extends State<Interval> {
     });
   }
 
-  void _choose(int distance) {
+  Future<void> _choose(int distance) async {
     if (!_canChoose) {
       FeedbackPopup.info(context, title: 'Play both notes first');
       return;
@@ -92,18 +92,90 @@ class _IntervalState extends State<Interval> {
     final questionCount = _session.getQuestion(_key);
     setState(() {});
 
+    String? unlocked;
     if (correct && scoreCount == 1) {
-      Achievement.unlock('ear_opening');
+      unlocked = await Achievement.unlock('ear_opening');
     }
-    if (streakCount >= 3) {
-      Achievement.unlock('interval_instinct');
+    if (unlocked == null && streakCount >= 3) {
+      unlocked = await Achievement.unlock('interval_instinct');
     }
-    if (questionCount >= 10 && scoreCount >= 10) {
-      Achievement.unlock('flawless');
+    if (unlocked == null && questionCount >= 10 && scoreCount >= 10) {
+      unlocked = await Achievement.unlock('flawless');
+    }
+    if (unlocked != null && mounted) {
+      await FeedbackPopup.achievement(context, title: '$unlocked unlocked!');
     }
 
+    if (!mounted) return;
     correct ? FeedbackPopup.success(context) : FeedbackPopup.error(context);
-    _nextQuestion();
+
+    if (questionCount >= 10) {
+      Future.delayed(const Duration(milliseconds: 1400), () {
+        if (mounted) _showComplete(context, questionCount, scoreCount);
+      });
+    } else {
+      _nextQuestion();
+    }
+  }
+
+  void _showComplete(BuildContext context, int total, int score) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A2E),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: _accent.withValues(alpha: 0.5), width: 1),
+        ),
+        title: Icon(
+          score >= 8 ? Icons.emoji_events : Icons.check_circle,
+          color: score >= 8 ? Colors.amber : _accent,
+          size: 48,
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Training Complete!',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'You scored $score out of $total',
+              style: const TextStyle(color: Colors.white70, fontSize: 16),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              score >= 8
+                  ? 'Excellent work!'
+                  : score >= 5
+                  ? 'Good effort!'
+                  : 'Keep practicing!',
+              style: TextStyle(
+                color: _accent.withValues(alpha: 0.8),
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: _accent),
+            onPressed: () {
+              _session.reset(_key);
+              Navigator.pop(ctx);
+              _nextQuestion();
+            },
+            child: const Text('Done'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -150,7 +222,8 @@ class _IntervalState extends State<Interval> {
               content:
                   '1. Listen to the notes\nTap both circle buttons to hear the two different notes.\n\n'
                   '2. Calculate the distance\nListen closely to the gap between the two pitches. How many semitones (notes) apart are they?\n\n'
-                  '3. Make your choice\nSelect the correct number from the grid below. Remember, you must listen to both notes first!',
+                  '3. Make your choice\nSelect the correct number from the grid below. Remember, you must listen to both notes first!\n\n'
+                  'Tip: Tap the replay button (↻) in the top bar to hear both notes again.',
             ),
           ),
         ],

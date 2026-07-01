@@ -1,4 +1,5 @@
 import 'package:audioplayers/audioplayers.dart';
+import 'package:ear_trainer/widgets/haptics.dart';
 import 'package:flutter/material.dart';
 
 /// SweetAlert-style center popup feedback.
@@ -13,6 +14,7 @@ class FeedbackPopup {
     String title = 'Correct',
     Duration duration = const Duration(milliseconds: 1200),
   }) {
+    Haptics.correct();
     _playSound('audio/correct.wav');
     return _show(
       context,
@@ -29,6 +31,7 @@ class FeedbackPopup {
     String title = 'Incorrect',
     Duration duration = const Duration(milliseconds: 1200),
   }) {
+    Haptics.wrong();
     _playSound('audio/incorrect.wav');
     return _show(
       context,
@@ -45,12 +48,28 @@ class FeedbackPopup {
     required String title,
     Duration duration = const Duration(milliseconds: 1500),
   }) {
+    Haptics.tap();
     _playSound('audio/misc.wav');
     return _show(
       context,
       title: title,
       icon: Icons.info,
       color: Colors.blue,
+      duration: duration,
+    );
+  }
+
+  /// Show an achievement unlocked popup with custom title.
+  static Future<void> achievement(
+    BuildContext context, {
+    required String title,
+    Duration duration = const Duration(milliseconds: 2000),
+  }) {
+    return _show(
+      context,
+      title: title,
+      icon: Icons.emoji_events,
+      color: Colors.amber,
       duration: duration,
     );
   }

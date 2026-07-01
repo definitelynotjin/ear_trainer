@@ -11,6 +11,7 @@ import 'package:ear_trainer/models/achievements.dart';
 import 'package:ear_trainer/models/quiz_session.dart';
 import 'package:ear_trainer/widgets/app_background.dart';
 import 'package:ear_trainer/widgets/feedback_popup.dart';
+import 'package:ear_trainer/widgets/haptics.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 const bool _enableAdminFab = bool.fromEnvironment(
@@ -231,6 +232,7 @@ class _FrontPageState extends State<FrontPage> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
+              // Factory Reset — available to all users
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFE94560),
@@ -247,11 +249,11 @@ class _FrontPageState extends State<FrontPage> {
                       return AlertDialog(
                         backgroundColor: const Color(0xFF1A1A2E),
                         title: const Text(
-                          'Reset achievements?',
+                          'Factory Reset?',
                           style: TextStyle(color: Colors.white),
                         ),
                         content: const Text(
-                          'This will clear all unlocked achievements and exercise progress.',
+                          'This will erase ALL data: progress, achievements, statistics, and history. This cannot be undone.',
                           style: TextStyle(color: Colors.white70),
                         ),
                         actions: [
@@ -262,7 +264,10 @@ class _FrontPageState extends State<FrontPage> {
                           ),
                           TextButton(
                             onPressed: () => Navigator.pop(dialogContext, true),
-                            child: const Text('Reset'),
+                            child: const Text(
+                              'Reset Everything',
+                              style: TextStyle(color: Colors.red),
+                            ),
                           ),
                         ],
                       );
@@ -271,146 +276,102 @@ class _FrontPageState extends State<FrontPage> {
 
                   if (shouldReset == true) {
                     await Achievement.resetAll();
-                    if (context.mounted) {
-                      Navigator.pop(context);
-                    }
-                  }
-                },
-                icon: const Icon(Icons.restart_alt),
-                label: const Text('Reset Achievements'),
-              ),
-              const SizedBox(height: 8),
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00B8A9),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onPressed: () async {
-                  final shouldUnlock = await showDialog<bool>(
-                    context: context,
-                    builder: (dialogContext) {
-                      return AlertDialog(
-                        backgroundColor: const Color(0xFF1A1A2E),
-                        title: const Text(
-                          'Unlock all achievements?',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        content: const Text(
-                          'This will unlock every available achievement.',
-                          style: TextStyle(color: Colors.white70),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () =>
-                                Navigator.pop(dialogContext, false),
-                            child: const Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.pop(dialogContext, true),
-                            child: const Text('Unlock'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-
-                  if (shouldUnlock == true) {
-                    await Achievement.unlockAll();
-                    if (context.mounted) {
-                      Navigator.pop(context);
-                    }
-                  }
-                },
-                icon: const Icon(Icons.lock_open),
-                label: const Text('Unlock All Achievements'),
-              ),
-              const SizedBox(height: 8),
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF8B400),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onPressed: () async {
-                  final shouldClear = await showDialog<bool>(
-                    context: context,
-                    builder: (dialogContext) {
-                      return AlertDialog(
-                        backgroundColor: const Color(0xFF1A1A2E),
-                        title: const Text(
-                          'Clear progress?',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        content: const Text(
-                          'This will reset all quiz scores and streaks.',
-                          style: TextStyle(color: Colors.white70),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () =>
-                                Navigator.pop(dialogContext, false),
-                            child: const Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.pop(dialogContext, true),
-                            child: const Text('Clear'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-
-                  if (shouldClear == true) {
                     await QuizSession().resetAll();
                     if (context.mounted) {
                       Navigator.pop(context);
                     }
                   }
                 },
-                icon: const Icon(Icons.delete_outline),
-                label: const Text('Clear Progress'),
+                icon: const Icon(Icons.delete_forever),
+                label: const Text('Factory Reset'),
               ),
-              const SizedBox(height: 8),
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFE94560),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+              // Admin-only buttons
+              if (_enableAdminFab) ...[
+                const SizedBox(height: 8),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF00B8A9),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
+                  onPressed: () async {
+                    final shouldUnlock = await showDialog<bool>(
+                      context: context,
+                      builder: (dialogContext) {
+                        return AlertDialog(
+                          backgroundColor: const Color(0xFF1A1A2E),
+                          title: const Text(
+                            'Unlock all achievements?',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          content: const Text(
+                            'This will unlock every available achievement.',
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () =>
+                                  Navigator.pop(dialogContext, false),
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () =>
+                                  Navigator.pop(dialogContext, true),
+                              child: const Text('Unlock'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+
+                    if (shouldUnlock == true) {
+                      await Achievement.unlockAll();
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                      }
+                    }
+                  },
+                  icon: const Icon(Icons.lock_open),
+                  label: const Text('Unlock All Achievements'),
                 ),
-                onPressed: () {
-                  QuizSession().setQuestion('pitch', 10);
-                  Navigator.pop(context);
-                },
-                icon: const Icon(Icons.lock_open),
-                label: const Text('Unlock Interval'),
-              ),
-              const SizedBox(height: 8),
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00B8A9),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                const SizedBox(height: 8),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFE94560),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
+                  onPressed: () {
+                    QuizSession().setQuestion('pitch', 10);
+                    Navigator.pop(context);
+                  },
+                  icon: const Icon(Icons.lock_open),
+                  label: const Text('Unlock Interval'),
                 ),
-                onPressed: () {
-                  QuizSession().setQuestion('interval', 5);
-                  Navigator.pop(context);
-                },
-                icon: const Icon(Icons.lock_open),
-                label: const Text('Unlock Scale'),
-              ),
+                const SizedBox(height: 8),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF00B8A9),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () {
+                    QuizSession().setQuestion('interval', 5);
+                    Navigator.pop(context);
+                  },
+                  icon: const Icon(Icons.lock_open),
+                  label: const Text('Unlock Scale'),
+                ),
+              ],
               const SizedBox(height: 8),
             ],
           ),
@@ -446,7 +407,10 @@ class _GridCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        Haptics.tap();
+        onTap();
+      },
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: locked ? 0.03 : 0.06),

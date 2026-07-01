@@ -193,6 +193,7 @@ class QuizSession {
     _cache.clear();
     final db = await _open();
     await db.delete('quiz_progress');
+    await db.delete('answer_history');
   }
 }
 

@@ -66,7 +66,7 @@ class _PitchState extends State<Pitch> {
     });
   }
 
-  void _score(bool leftChosen) {
+  Future<void> _score(bool leftChosen) async {
     if (_answered) return;
     _answered = true;
     final bool correct = leftChosen
@@ -79,21 +79,93 @@ class _PitchState extends State<Pitch> {
     final questionCount = _session.getQuestion(_key);
     setState(() {});
 
+    String? unlocked;
     if (correct && scoreCount == 1) {
-      Achievement.unlock('first_note');
+      unlocked = await Achievement.unlock('first_note');
     }
-    if (streakCount >= 5) {
-      Achievement.unlock('perfect_pitch');
+    if (unlocked == null && streakCount >= 5) {
+      unlocked = await Achievement.unlock('perfect_pitch');
     }
-    if (questionCount >= 10) {
-      Achievement.unlock('pitch_veteran');
-      if (scoreCount >= 10) {
-        Achievement.unlock('flawless');
+    if (unlocked == null && questionCount >= 10) {
+      unlocked = await Achievement.unlock('pitch_veteran');
+      if (unlocked == null && scoreCount >= 10) {
+        unlocked = await Achievement.unlock('flawless');
       }
     }
+    if (unlocked != null && mounted) {
+      await FeedbackPopup.achievement(context, title: '$unlocked unlocked!');
+    }
 
+    if (!mounted) return;
     correct ? FeedbackPopup.success(context) : FeedbackPopup.error(context);
-    _nextQuestion();
+
+    if (questionCount >= 10) {
+      Future.delayed(const Duration(milliseconds: 1400), () {
+        if (mounted) _showComplete(context, questionCount, scoreCount);
+      });
+    } else {
+      _nextQuestion();
+    }
+  }
+
+  void _showComplete(BuildContext context, int total, int score) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A2E),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: _accent.withValues(alpha: 0.5), width: 1),
+        ),
+        title: Icon(
+          score >= 8 ? Icons.emoji_events : Icons.check_circle,
+          color: score >= 8 ? Colors.amber : _accent,
+          size: 48,
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Training Complete!',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'You scored $score out of $total',
+              style: const TextStyle(color: Colors.white70, fontSize: 16),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              score >= 8
+                  ? 'Excellent work!'
+                  : score >= 5
+                  ? 'Good effort!'
+                  : 'Keep practicing!',
+              style: TextStyle(
+                color: _accent.withValues(alpha: 0.8),
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: _accent),
+            onPressed: () {
+              _session.reset(_key);
+              Navigator.pop(ctx);
+              _nextQuestion();
+            },
+            child: const Text('Done'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -140,7 +212,8 @@ class _PitchState extends State<Pitch> {
               content:
                   '1. Listen to the notes\nTap both circle buttons to hear the two different notes.\n\n'
                   '2. Compare the pitch\nDecide which of the two notes sounds HIGHER.\n\n'
-                  '3. Make your choice\nTap the LEFT arrow if the first note is higher, or tap the RIGHT arrow if the second note is higher.',
+                  '3. Make your choice\nTap the LEFT arrow if the first note is higher, or tap the RIGHT arrow if the second note is higher.\n\n'
+                  'Tip: Tap the replay button (↻) in the top bar to hear both notes again.',
             ),
           ),
         ],

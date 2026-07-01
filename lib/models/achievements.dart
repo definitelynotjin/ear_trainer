@@ -1,4 +1,7 @@
+import 'dart:async';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:ear_trainer/models/quiz_session.dart';
+import 'package:ear_trainer/widgets/haptics.dart';
 
 class Achievement {
   final String id;
@@ -141,10 +144,14 @@ class Achievement {
     await _saveUnlocked();
   }
 
-  static Future<void> unlock(String id) async {
+  /// Unlocks an achievement. Returns the achievement title if newly unlocked, null otherwise.
+  static Future<String?> unlock(String id) async {
     final achievement = _findById(id);
-    if (achievement != null) {
+    if (achievement != null && !achievement.isUnlocked) {
       achievement.isUnlocked = true;
+      // Achievement feedback: haptic + sound
+      Haptics.achievement();
+      _playUnlockSound();
       await _saveUnlocked();
       // Check completionist
       if (all.every((a) => a.isUnlocked) &&
@@ -155,7 +162,9 @@ class Achievement {
           await _saveUnlocked();
         }
       }
+      return achievement.title;
     }
+    return null;
   }
 
   static Future<void> markExerciseUsed(String exerciseId) async {
@@ -167,5 +176,12 @@ class Achievement {
       return;
     }
     await _saveExercises();
+  }
+
+  static final AudioPlayer _achPlayer = AudioPlayer();
+
+  static void _playUnlockSound() {
+    _achPlayer.stop();
+    _achPlayer.play(AssetSource('audio/correct.wav'));
   }
 }

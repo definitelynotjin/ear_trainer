@@ -120,7 +120,7 @@ class _ScaleState extends State<Scale> {
     _answer(note);
   }
 
-  void _answer(Note chosen) {
+  Future<void> _answer(Note chosen) async {
     if (_answered) return;
     _answered = true;
     final correct = _cMajor[_missingIndex];
@@ -135,18 +135,89 @@ class _ScaleState extends State<Scale> {
       _previewedChoiceIndex = -1;
     });
 
+    String? unlocked;
     if (questionCount >= 10 && scoreCount >= 10) {
-      Achievement.unlock('flawless');
+      unlocked = await Achievement.unlock('flawless');
+    }
+    if (unlocked != null && mounted) {
+      await FeedbackPopup.achievement(context, title: '$unlocked unlocked!');
     }
 
+    if (!mounted) return;
     isCorrect
         ? FeedbackPopup.success(context)
         : FeedbackPopup.error(
             context,
             title: 'Wrong — Correct: ${correct.name}${correct.octave}',
           );
-    if (isCorrect)
+
+    if (questionCount >= 10) {
+      Future.delayed(const Duration(milliseconds: 1400), () {
+        if (mounted) _showComplete(context, questionCount, scoreCount);
+      });
+    } else if (isCorrect) {
       Future.delayed(const Duration(milliseconds: 700), _newQuestion);
+    }
+  }
+
+  void _showComplete(BuildContext context, int total, int score) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A2E),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: _accent.withValues(alpha: 0.5), width: 1),
+        ),
+        title: Icon(
+          score >= 8 ? Icons.emoji_events : Icons.check_circle,
+          color: score >= 8 ? Colors.amber : _accent,
+          size: 48,
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Training Complete!',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'You scored $score out of $total',
+              style: const TextStyle(color: Colors.white70, fontSize: 16),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              score >= 8
+                  ? 'Excellent work!'
+                  : score >= 5
+                  ? 'Good effort!'
+                  : 'Keep practicing!',
+              style: TextStyle(
+                color: _accent.withValues(alpha: 0.8),
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: _accent),
+            onPressed: () {
+              _session.reset(_key);
+              Navigator.pop(ctx);
+              _newQuestion();
+            },
+            child: const Text('Done'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -184,7 +255,8 @@ class _ScaleState extends State<Scale> {
               content:
                   '1. Listen to the scale\nTap the note buttons at the top to hear the notes of the C Major scale. One note has been removed!\n\n'
                   '2. Find the missing note\nListen carefully to the gaps in the scale. Which note is missing?\n\n'
-                  '3. Make your choice\nTap a choice button at the bottom once to preview its sound. Tap the exact same button a SECOND time to submit it as your final answer.',
+                  '3. Make your choice\nTap a choice button at the bottom once to preview its sound. Tap the exact same button a SECOND time to submit it as your final answer.\n\n'
+                  'Tip: Tap any note button again to replay its sound as many times as you need.',
             ),
           ),
         ],
@@ -221,13 +293,50 @@ class _ScaleState extends State<Scale> {
                 ),
                 const SizedBox(height: 32),
                 Text(
-                  'Guess the missing note in C major',
+                  'Guess the missing note',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.white.withValues(alpha: 0.7),
                   ),
                 ),
                 const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Low',
+                      style: TextStyle(
+                        color: _accent.withValues(alpha: 0.5),
+                        fontSize: 11,
+                      ),
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Ascending',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.4),
+                            fontSize: 11,
+                          ),
+                        ),
+                        Icon(
+                          Icons.arrow_forward,
+                          size: 14,
+                          color: _accent.withValues(alpha: 0.5),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      'High',
+                      style: TextStyle(
+                        color: _accent.withValues(alpha: 0.5),
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
                 Text(
                   'Playable notes (tap to hear):',
                   style: TextStyle(
@@ -236,47 +345,53 @@ class _ScaleState extends State<Scale> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  alignment: WrapAlignment.center,
-                  children: _playable.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final n = entry.value;
-                    final isHighlighted = _highlightedPlayableIndex == index;
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: _playable.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final n = entry.value;
+                      final isHighlighted = _highlightedPlayableIndex == index;
 
-                    return GestureDetector(
-                      onTap: () => _playPlayable(n, index),
-                      child: Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: isHighlighted
-                              ? _accent.withValues(alpha: 0.18)
-                              : Colors.white.withValues(alpha: 0.06),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isHighlighted
-                                ? _accent
-                                : Colors.white.withValues(alpha: 0.15),
-                            width: 1,
-                          ),
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          right: index < _playable.length - 1 ? 8 : 0,
                         ),
-                        child: Center(
-                          child: SvgPicture.asset(
-                            'assets/icons/waves.svg',
-                            width: 40,
-                            height: 40,
-                            fit: BoxFit.contain,
-                            colorFilter: ColorFilter.mode(
-                              isHighlighted ? _accent : Colors.white60,
-                              BlendMode.srcIn,
+                        child: GestureDetector(
+                          onTap: () => _playPlayable(n, index),
+                          child: Container(
+                            width: 42,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              color: isHighlighted
+                                  ? _accent.withValues(alpha: 0.18)
+                                  : Colors.white.withValues(alpha: 0.06),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: isHighlighted
+                                    ? _accent
+                                    : Colors.white.withValues(alpha: 0.15),
+                                width: 1,
+                              ),
+                            ),
+                            child: Center(
+                              child: SvgPicture.asset(
+                                'assets/icons/waves.svg',
+                                width: 22,
+                                height: 22,
+                                fit: BoxFit.contain,
+                                colorFilter: ColorFilter.mode(
+                                  isHighlighted ? _accent : Colors.white60,
+                                  BlendMode.srcIn,
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    );
-                  }).toList(),
+                      );
+                    }).toList(),
+                  ),
                 ),
                 const SizedBox(height: 32),
                 Text(
