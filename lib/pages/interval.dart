@@ -130,6 +130,16 @@ class _IntervalState extends State<Interval> {
           style: TextStyle(color: Colors.white, fontSize: 20),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.replay, color: Colors.white70),
+            onPressed: () {
+              _play(leftNote);
+              Future.delayed(
+                const Duration(milliseconds: 800),
+                () => _play(rightNote),
+              );
+            },
+          ),
           Padding(
             padding: const EdgeInsets.only(right: 20),
             child: Help(

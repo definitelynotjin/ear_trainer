@@ -63,7 +63,7 @@ class Achievement {
     Achievement(
       id: 'completionist',
       title: 'Completionist',
-      description: 'Unlock every available badge',
+      description: 'Unlock every available badges',
       icon: 'assets/badges/badge_completionist.svg',
     ),
   ];

@@ -20,7 +20,7 @@ class QuizSession {
     final dbPath = await getDatabasesPath();
     _db = await openDatabase(
       p.join(dbPath, 'ear_trainer.db'),
-      version: 3,
+      version: 4,
       onCreate: (db, v) async {
         await _createAllTables(db);
       },
@@ -57,6 +57,14 @@ class QuizSession {
       CREATE TABLE IF NOT EXISTS seen_pages(
         page TEXT PRIMARY KEY,
         seen INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS answer_history(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        exercise TEXT NOT NULL,
+        correct INTEGER NOT NULL,
+        answered_at INTEGER NOT NULL
       )
     ''');
   }
@@ -136,6 +144,43 @@ class QuizSession {
     }
     s.lastCorrect = correct;
     _persist(key);
+    _logHistory(key, correct);
+  }
+
+  Future<void> _logHistory(String exercise, bool correct) async {
+    final db = await _open();
+    await db.insert('answer_history', {
+      'exercise': exercise,
+      'correct': correct ? 1 : 0,
+      'answered_at': DateTime.now().millisecondsSinceEpoch,
+    });
+  }
+
+  /// Returns answer history rows (most recent first).
+  /// Each row: {id, exercise, correct (int), answered_at (int ms)}
+  Future<List<Map<String, dynamic>>> getHistory({
+    String? exercise,
+    int? limit,
+  }) async {
+    final db = await _open();
+    final where = exercise != null ? 'exercise = ?' : null;
+    final whereArgs = exercise != null ? [exercise] : null;
+    final orderBy = 'answered_at DESC';
+    final limitVal = limit;
+    return db.query(
+      'answer_history',
+      where: where,
+      whereArgs: whereArgs,
+      orderBy: orderBy,
+      limit: limitVal,
+    );
+  }
+
+  /// Total answers across all exercises.
+  Future<int> get totalAnswered async {
+    final db = await _open();
+    final rows = await db.rawQuery('SELECT COUNT(*) as c FROM answer_history');
+    return Sqflite.firstIntValue(rows) ?? 0;
   }
 
   Future<void> reset(String key) async {

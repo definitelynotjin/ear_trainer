@@ -39,12 +39,13 @@ class FeedbackPopup {
     );
   }
 
-  /// Show an info popup (blue info). No sound.
+  /// Show an info popup (blue info) + misc sound.
   static Future<void> info(
     BuildContext context, {
     required String title,
     Duration duration = const Duration(milliseconds: 1500),
   }) {
+    _playSound('audio/misc.wav');
     return _show(
       context,
       title: title,

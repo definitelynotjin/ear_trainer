@@ -5,6 +5,8 @@ import 'package:ear_trainer/pages/interval.dart' as interval_page;
 import 'package:ear_trainer/pages/scale.dart';
 import 'package:ear_trainer/pages/achievements.dart';
 import 'package:ear_trainer/pages/scaleused.dart';
+import 'package:ear_trainer/pages/splash.dart';
+import 'package:ear_trainer/pages/statistics.dart';
 import 'package:ear_trainer/models/achievements.dart';
 import 'package:ear_trainer/models/quiz_session.dart';
 import 'package:ear_trainer/widgets/app_background.dart';
@@ -49,146 +51,156 @@ class _FrontPageState extends State<FrontPage> {
       ),
       body: AppBackground(
         child: SafeArea(
-          child: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 40, bottom: 8),
-                  child: Column(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SplashScreen()),
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.all(30),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.08),
+                      shape: BoxShape.circle,
+                    ),
+                    child: SvgPicture.asset(
+                      'assets/icons/ear_trainer.svg',
+                      width: 60,
+                      height: 60,
+                      color: Colors.tealAccent,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Ear Trainer',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.95),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 26,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Train your musical ear',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.5),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w300,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: GridView.count(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    childAspectRatio: 1.0,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.08),
-                          shape: BoxShape.circle,
-                        ),
-                        child: SvgPicture.asset(
-                          'assets/icons/ear_trainer.svg',
-                          width: 56,
-                          height: 56,
-                          color: Colors.tealAccent,
+                      _GridCard(
+                        label: 'Pitch',
+                        iconPath: 'assets/icons/single_note.svg',
+                        accentColor: const Color(0xFFFF6B35),
+                        subtitle: 'Higher or lower?',
+                        progress: _progressFor('pitch'),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const Pitch()),
+                        ).then((_) => setState(() {})),
+                      ),
+                      _GridCard(
+                        label: 'Interval',
+                        iconPath: 'assets/icons/double_note.svg',
+                        accentColor: const Color(0xFF00B8A9),
+                        subtitle: _intervalUnlocked
+                            ? 'Distance between notes'
+                            : 'Complete 10 Pitch',
+                        progress: _progressFor('interval'),
+                        locked: !_intervalUnlocked,
+                        onTap: _intervalUnlocked
+                            ? () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const interval_page.Interval(),
+                                ),
+                              ).then((_) => setState(() {}))
+                            : () => FeedbackPopup.info(
+                                context,
+                                title: 'Complete 10 Pitch questions first',
+                              ),
+                      ),
+                      _GridCard(
+                        label: 'Scale',
+                        iconPath: 'assets/icons/waves.svg',
+                        accentColor: const Color(0xFFF8B400),
+                        subtitle: _scaleUnlocked
+                            ? 'Find missing note'
+                            : 'Complete 5 Interval',
+                        progress: _progressFor('scale'),
+                        locked: !_scaleUnlocked,
+                        onTap: _scaleUnlocked
+                            ? () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const Scale(),
+                                ),
+                              ).then((_) => setState(() {}))
+                            : () => FeedbackPopup.info(
+                                context,
+                                title: 'Complete 5 Interval questions first',
+                              ),
+                      ),
+                      _GridCard(
+                        label: 'Achievements',
+                        iconPath: 'assets/icons/trophy.svg',
+                        accentColor: const Color(0xFFB983FF),
+                        subtitle: 'Your badges',
+                        progress: Achievement.all
+                            .where((a) => a.isUnlocked)
+                            .length,
+                        totalSteps: Achievement.all.length,
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const Achievements(),
+                          ),
+                        ).then((_) => setState(() {})),
+                      ),
+                      _GridCard(
+                        label: 'Statistics',
+                        iconPath: 'assets/icons/progress.svg',
+                        accentColor: const Color(0xFF00B8A9),
+                        subtitle: 'View your progress',
+                        showProgress: false,
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const StatisticsPage(),
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Ear Trainer',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.95),
-                          fontWeight: FontWeight.w700,
-                          fontSize: 32,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Train your musical ear',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.5),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w300,
+                      _GridCard(
+                        label: 'Scale Used',
+                        iconPath: 'assets/icons/cadence.svg',
+                        accentColor: const Color(0xFF6C5CE7),
+                        subtitle: 'Reference scale',
+                        showProgress: false,
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const ScaleUsed()),
                         ),
                       ),
                     ],
                   ),
                 ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 16,
-                    crossAxisSpacing: 16,
-                    childAspectRatio: 0.85,
-                  ),
-                  delegate: SliverChildListDelegate([
-                    _GridCard(
-                      label: 'Pitch',
-                      iconPath: 'assets/icons/single_note.svg',
-                      accentColor: const Color(0xFFFF6B35),
-                      subtitle: 'Higher or lower?',
-                      progress: _progressFor('pitch'),
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const Pitch()),
-                      ).then((_) => setState(() {})),
-                    ),
-                    _GridCard(
-                      label: 'Interval',
-                      iconPath: 'assets/icons/double_note.svg',
-                      accentColor: const Color(0xFF00B8A9),
-                      subtitle: _intervalUnlocked
-                          ? 'Distance between notes'
-                          : 'Complete 10 Pitch',
-                      progress: _progressFor('interval'),
-                      locked: !_intervalUnlocked,
-                      onTap: _intervalUnlocked
-                          ? () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const interval_page.Interval(),
-                              ),
-                            ).then((_) => setState(() {}))
-                          : () => FeedbackPopup.info(
-                              context,
-                              title: 'Complete 10 Pitch questions first',
-                            ),
-                    ),
-                    _GridCard(
-                      label: 'Scale',
-                      iconPath: 'assets/icons/waves.svg',
-                      accentColor: const Color(0xFFF8B400),
-                      subtitle: _scaleUnlocked
-                          ? 'Find missing note'
-                          : 'Complete 5 Interval',
-                      progress: _progressFor('scale'),
-                      locked: !_scaleUnlocked,
-                      onTap: _scaleUnlocked
-                          ? () => Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const Scale()),
-                            ).then((_) => setState(() {}))
-                          : () => FeedbackPopup.info(
-                              context,
-                              title: 'Complete 5 Interval questions first',
-                            ),
-                    ),
-                    _GridCard(
-                      label: 'Achievements',
-                      iconPath: 'assets/icons/trophy.svg',
-                      accentColor: const Color(0xFFB983FF),
-                      subtitle: 'Your badges',
-                      progress: Achievement.all
-                          .where((a) => a.isUnlocked)
-                          .length,
-                      totalSteps: Achievement.all.length,
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const Achievements()),
-                      ).then((_) => setState(() {})),
-                    ),
-                  ]),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  child: _WideCard(
-                    label: 'Scale Used',
-                    iconPath: 'assets/icons/cadence.svg',
-                    accentColor: const Color(0xFF6C5CE7),
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const ScaleUsed()),
-                    ),
-                  ),
-                ),
-              ),
-              const SliverToBoxAdapter(child: SizedBox(height: 80)),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -416,6 +428,7 @@ class _GridCard extends StatelessWidget {
   final int progress;
   final int totalSteps;
   final bool locked;
+  final bool showProgress;
   final VoidCallback onTap;
 
   const _GridCard({
@@ -426,6 +439,7 @@ class _GridCard extends StatelessWidget {
     this.progress = 0,
     this.totalSteps = 10,
     this.locked = false,
+    this.showProgress = true,
     required this.onTap,
   });
 
@@ -488,7 +502,7 @@ class _GridCard extends StatelessWidget {
                   fontSize: 12,
                 ),
               ),
-              if (!locked) ...[
+              if (!locked && showProgress) ...[
                 const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,

@@ -1,6 +1,13 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:ear_trainer/models/quiz_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+
+final AudioPlayer _miscPlayer = AudioPlayer();
+void _playMisc() {
+  _miscPlayer.stop();
+  _miscPlayer.play(AssetSource('audio/misc.wav'));
+}
 
 class Help extends StatefulWidget {
   final String helpIcon;
@@ -37,6 +44,7 @@ class HelpButtonState extends State<Help> {
   }
 
   void _showHelpModal() {
+    _playMisc();
     showDialog(
       context: context,
       builder: (BuildContext context) {
