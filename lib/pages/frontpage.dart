@@ -37,8 +37,12 @@ class _FrontPageState extends State<FrontPage> {
   bool _lifetimeCompleted(String key, int threshold) =>
       QuizSession().getLifetime(key) >= threshold;
 
-  bool get _intervalUnlocked => _lifetimeCompleted('pitch', 10);
-  bool get _scaleUnlocked => _lifetimeCompleted('interval', 5);
+  bool get _intervalUnlocked =>
+      _lifetimeCompleted('pitch', 10) ||
+      QuizSession().getQuestion('pitch') >= 10;
+  bool get _scaleUnlocked =>
+      _lifetimeCompleted('interval', 5) ||
+      QuizSession().getQuestion('interval') >= 5;
 
   @override
   Widget build(BuildContext context) {

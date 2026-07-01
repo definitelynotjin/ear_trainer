@@ -75,7 +75,6 @@ class FeedbackPopup {
     );
   }
 
-  /// Thank-you modal — must tap "You're Welcome" to close.
   static Future<void> thankYou(BuildContext context) async {
     Haptics.achievement();
     _playSound('audio/boom.wav');
