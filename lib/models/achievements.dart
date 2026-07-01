@@ -69,7 +69,46 @@ class Achievement {
       description: 'Unlock every available badges',
       icon: 'assets/badges/badge_completionist.svg',
     ),
+    Achievement(
+      id: 'thank_you',
+      title: 'Thank You',
+      description: 'Complete 10 Pitch, 5 Interval, and 5 Scale questions.',
+      icon: 'assets/badges/badge_thank_you.svg',
+    ),
+    Achievement(
+      id: 'false_sense',
+      title: 'False Sense',
+      description: 'Get 5 answers wrong in a row. Better luck next time!',
+      icon: 'assets/badges/badge_false_sense.svg',
+    ),
   ];
+
+  /// Check if false_sense thresholds met (5 wrong in a row in any exercise).
+  /// Returns true if newly unlocked.
+  static Future<bool> checkFalseSense(String key) async {
+    final a = _findById('false_sense');
+    if (a == null || a.isUnlocked) return false;
+    if (QuizSession().getWrongStreak(key) >= 5) {
+      await unlock('false_sense');
+      return true;
+    }
+    return false;
+  }
+
+  /// Check if thank_you thresholds met (10 pitch + 5 interval + 5 scale lifetime).
+  /// Returns true if newly unlocked.
+  static Future<bool> checkThankYou() async {
+    final a = _findById('thank_you');
+    if (a == null || a.isUnlocked) return false;
+    final pitch = QuizSession().getLifetime('pitch');
+    final interval = QuizSession().getLifetime('interval');
+    final scale = QuizSession().getLifetime('scale');
+    if (pitch >= 10 && interval >= 5 && scale >= 5) {
+      await unlock('thank_you');
+      return true;
+    }
+    return false;
+  }
 
   static Achievement? _findById(String id) {
     for (final achievement in all) {

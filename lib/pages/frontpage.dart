@@ -374,6 +374,31 @@ class _FrontPageState extends State<FrontPage> {
                   icon: const Icon(Icons.lock_open),
                   label: const Text('Unlock Scale'),
                 ),
+                const SizedBox(height: 8),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFFD700),
+                    foregroundColor: const Color(0xFF1A1A2E),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () async {
+                    final s = QuizSession();
+                    s.fillLifetime('pitch', 10);
+                    s.fillLifetime('interval', 5);
+                    s.fillLifetime('scale', 5);
+                    Navigator.pop(context);
+                    if (context.mounted) {
+                      await Achievement.checkThankYou();
+                      if (context.mounted)
+                        await FeedbackPopup.thankYou(context);
+                    }
+                  },
+                  icon: const Icon(Icons.volunteer_activism),
+                  label: const Text('Test Thank You'),
+                ),
               ],
               const SizedBox(height: 8),
             ],

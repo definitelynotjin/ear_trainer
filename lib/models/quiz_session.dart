@@ -103,6 +103,9 @@ class QuizSession {
   /// Only cleared by `resetAll`. Sync, from cache.
   int getLifetime(String key) => _get(key).lifetime;
 
+  /// Current consecutive wrong answers. Sync, from cache.
+  int getWrongStreak(String key) => _get(key).wrongStreak;
+
   Future<void> _persist(String key) async {
     final db = await _open();
     final s = _get(key);
@@ -120,6 +123,13 @@ class QuizSession {
   int getStreak(String key) => _get(key).streak;
   int getQuestion(String key) => _get(key).question;
   bool? getLastCorrect(String key) => _get(key).lastCorrect;
+
+  /// Bulk-add lifetime answers (admin cheat for testing thank-you).
+  void fillLifetime(String key, int count) {
+    final s = _get(key);
+    s.lifetime += count;
+    _persist(key);
+  }
 
   /// Force-set the question count for a key (admin cheat).
   void setQuestion(String key, int count) {
@@ -151,8 +161,10 @@ class QuizSession {
     if (correct) {
       s.score++;
       s.streak++;
+      s.wrongStreak = 0;
     } else {
       s.streak = 0;
+      s.wrongStreak++;
     }
     s.lastCorrect = correct;
     _persist(key);
@@ -217,6 +229,7 @@ class _ExerciseState {
   int streak;
   int question;
   int lifetime;
+  int wrongStreak;
   bool? lastCorrect;
 
   _ExerciseState({
@@ -224,6 +237,7 @@ class _ExerciseState {
     this.streak = 0,
     this.question = 0,
     this.lifetime = 0,
+    this.wrongStreak = 0,
     this.lastCorrect,
   });
 }

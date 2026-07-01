@@ -143,6 +143,17 @@ class _ScaleState extends State<Scale> {
       await FeedbackPopup.achievement(context, title: '$unlocked unlocked!');
     }
 
+    // Thank-you achievement check
+    if (await Achievement.checkThankYou() && mounted) {
+      await FeedbackPopup.thankYou(context);
+    }
+
+    // False-sense achievement check (5 wrong in a row)
+    final falseUnlocked = await Achievement.checkFalseSense(_key);
+    if (falseUnlocked && mounted) {
+      await FeedbackPopup.achievement(context, title: 'False Sense unlocked!');
+    }
+
     if (!mounted) return;
     isCorrect
         ? FeedbackPopup.success(context)
