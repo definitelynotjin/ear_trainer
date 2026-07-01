@@ -42,6 +42,7 @@ class _ScaleState extends State<Scale> {
   void initState() {
     super.initState();
     Achievement.markExerciseUsed('scale');
+    if (_session.getLives(_key) <= 0) _session.refillLives(_key);
     _cMajor = [
       const Note(name: 'C', octave: 4, frequency: 261.63, semitone: 0),
       const Note(name: 'D', octave: 4, frequency: 293.66, semitone: 2),
@@ -127,7 +128,12 @@ class _ScaleState extends State<Scale> {
     final isCorrect =
         chosen.name == correct.name && chosen.octave == correct.octave;
 
-    _session.recordAnswer(_key, isCorrect);
+    _session.recordAnswer(
+      _key,
+      isCorrect,
+      chosenAnswer: '${chosen.name}${chosen.octave}',
+      correctAnswer: '${correct.name}${correct.octave}',
+    );
     final scoreCount = _session.getScore(_key);
     final streakCount = _session.getStreak(_key);
     final questionCount = _session.getQuestion(_key);
@@ -162,6 +168,13 @@ class _ScaleState extends State<Scale> {
             title: 'Wrong — Correct: ${correct.name}${correct.octave}',
           );
 
+    if (_session.isDead(_key)) {
+      Future.delayed(const Duration(milliseconds: 1400), () {
+        if (mounted) _showGameOver(context);
+      });
+      return;
+    }
+
     if (questionCount >= 10) {
       Future.delayed(const Duration(milliseconds: 1400), () {
         if (mounted) _showComplete(context, questionCount, scoreCount);
@@ -169,6 +182,53 @@ class _ScaleState extends State<Scale> {
     } else {
       Future.delayed(const Duration(milliseconds: 700), _newQuestion);
     }
+  }
+
+  void _showGameOver(BuildContext context) {
+    _player.play(AssetSource('audio/fail.wav'));
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A2E),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Colors.red.withValues(alpha: 0.5), width: 1),
+        ),
+        title: const Icon(Icons.heart_broken, color: Colors.red, size: 48),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Out of Lives!',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'You lost all 3 lives. Progress reset.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white70, fontSize: 14),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: _accent),
+            onPressed: () async {
+              await _session.reset(_key);
+              if (!mounted) return;
+              Navigator.pop(ctx);
+              _newQuestion();
+            },
+            child: const Text('Try Again'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showComplete(BuildContext context, int total, int score) {
@@ -258,6 +318,22 @@ class _ScaleState extends State<Scale> {
         elevation: 0,
         actions: [
           Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Row(
+              children: List.generate(3, (i) {
+                final filled = i < _session.getLives(_key);
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 1),
+                  child: Icon(
+                    filled ? Icons.favorite : Icons.favorite_border,
+                    color: filled ? Colors.red : Colors.white24,
+                    size: 18,
+                  ),
+                );
+              }),
+            ),
+          ),
+          Padding(
             padding: const EdgeInsets.only(right: 20),
             child: Help(
               helpIcon: 'assets/icons/help.svg',
@@ -268,6 +344,7 @@ class _ScaleState extends State<Scale> {
                   '1. Listen to the scale\nTap the note buttons at the top to hear the notes of the C Major scale. One note has been removed!\n\n'
                   '2. Find the missing note\nListen carefully to the gaps in the scale. Which note is missing?\n\n'
                   '3. Make your choice\nTap a choice button at the bottom once to preview its sound. Tap the exact same button a SECOND time to submit it as your final answer.\n\n'
+                  'Lives: You start each round with 3 lives (♥♥♥). A wrong answer costs one. Lose all 3 and progress resets.\n\n'
                   'Tip: Tap any note button again to replay its sound as many times as you need.',
             ),
           ),

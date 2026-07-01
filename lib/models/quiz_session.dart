@@ -20,16 +20,33 @@ class QuizSession {
     final dbPath = await getDatabasesPath();
     _db = await openDatabase(
       p.join(dbPath, 'ear_trainer.db'),
-      version: 5,
+      version: 7,
       onCreate: (db, v) async {
         await _createAllTables(db);
       },
       onUpgrade: (db, oldV, newV) async {
         await _createAllTables(db);
         // Add lifetime column for upgrades from v4
-        await db.execute(
-          'ALTER TABLE quiz_progress ADD COLUMN lifetime INTEGER NOT NULL DEFAULT 0',
-        );
+        if (oldV < 5) {
+          await db.execute(
+            'ALTER TABLE quiz_progress ADD COLUMN lifetime INTEGER NOT NULL DEFAULT 0',
+          );
+        }
+        // Add chosen/correct answer columns for upgrades from v5
+        if (oldV < 6) {
+          await db.execute(
+            'ALTER TABLE answer_history ADD COLUMN chosen_answer TEXT',
+          );
+          await db.execute(
+            'ALTER TABLE answer_history ADD COLUMN correct_answer TEXT',
+          );
+        }
+        // Add lives column for upgrades from v6
+        if (oldV < 7) {
+          await db.execute(
+            'ALTER TABLE quiz_progress ADD COLUMN lives INTEGER NOT NULL DEFAULT 3',
+          );
+        }
       },
     );
     return _db!;
@@ -43,7 +60,8 @@ class QuizSession {
         streak INTEGER NOT NULL DEFAULT 0,
         question INTEGER NOT NULL DEFAULT 0,
         last_correct INTEGER,
-        lifetime INTEGER NOT NULL DEFAULT 0
+        lifetime INTEGER NOT NULL DEFAULT 0,
+        lives INTEGER NOT NULL DEFAULT 3
       )
     ''');
     await db.execute('''
@@ -69,7 +87,9 @@ class QuizSession {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         exercise TEXT NOT NULL,
         correct INTEGER NOT NULL,
-        answered_at INTEGER NOT NULL
+        answered_at INTEGER NOT NULL,
+        chosen_answer TEXT,
+        correct_answer TEXT
       )
     ''');
   }
@@ -89,6 +109,7 @@ class QuizSession {
             ? null
             : (r['last_correct'] as int) == 1,
         lifetime: (r['lifetime'] as int?) ?? 0,
+        lives: (r['lives'] as int?) ?? 3,
       );
     }
     _loaded = true;
@@ -116,6 +137,7 @@ class QuizSession {
       'question': s.question,
       'last_correct': s.lastCorrect == null ? null : (s.lastCorrect! ? 1 : 0),
       'lifetime': s.lifetime,
+      'lives': s.lives,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
@@ -123,6 +145,14 @@ class QuizSession {
   int getStreak(String key) => _get(key).streak;
   int getQuestion(String key) => _get(key).question;
   bool? getLastCorrect(String key) => _get(key).lastCorrect;
+  int getLives(String key) => _get(key).lives;
+  bool isDead(String key) => _get(key).lives <= 0;
+
+  /// Refill lives to full for [key] (used when starting/restarting a round).
+  void refillLives(String key) {
+    _get(key).lives = 3;
+    _persist(key);
+  }
 
   /// Bulk-add lifetime answers (admin cheat for testing thank-you).
   void fillLifetime(String key, int count) {
@@ -154,7 +184,12 @@ class QuizSession {
     return false;
   }
 
-  void recordAnswer(String key, bool correct) {
+  void recordAnswer(
+    String key,
+    bool correct, {
+    String? chosenAnswer,
+    String? correctAnswer,
+  }) {
     final s = _get(key);
     s.question++;
     s.lifetime++;
@@ -165,18 +200,26 @@ class QuizSession {
     } else {
       s.streak = 0;
       s.wrongStreak++;
+      if (s.lives > 0) s.lives--;
     }
     s.lastCorrect = correct;
     _persist(key);
-    _logHistory(key, correct);
+    _logHistory(key, correct, chosenAnswer, correctAnswer);
   }
 
-  Future<void> _logHistory(String exercise, bool correct) async {
+  Future<void> _logHistory(
+    String exercise,
+    bool correct,
+    String? chosenAnswer,
+    String? correctAnswer,
+  ) async {
     final db = await _open();
     await db.insert('answer_history', {
       'exercise': exercise,
       'correct': correct ? 1 : 0,
       'answered_at': DateTime.now().millisecondsSinceEpoch,
+      'chosen_answer': chosenAnswer,
+      'correct_answer': correctAnswer,
     });
   }
 
@@ -208,9 +251,9 @@ class QuizSession {
   }
 
   Future<void> reset(String key) async {
-    // Preserve lifetime across round resets.
+    // Preserve lifetime across round resets. Refill lives.
     final oldLifetime = _get(key).lifetime;
-    _cache[key] = _ExerciseState(lifetime: oldLifetime);
+    _cache[key] = _ExerciseState(lifetime: oldLifetime, lives: 3);
     final db = await _open();
     await db.delete('quiz_progress', where: 'exercise = ?', whereArgs: [key]);
     _persist(key);
@@ -230,6 +273,7 @@ class _ExerciseState {
   int question;
   int lifetime;
   int wrongStreak;
+  int lives;
   bool? lastCorrect;
 
   _ExerciseState({
@@ -238,6 +282,7 @@ class _ExerciseState {
     this.question = 0,
     this.lifetime = 0,
     this.wrongStreak = 0,
+    this.lives = 3,
     this.lastCorrect,
   });
 }

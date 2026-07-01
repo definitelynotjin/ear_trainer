@@ -50,6 +50,7 @@ class _PitchState extends State<Pitch> {
   void initState() {
     super.initState();
     Achievement.markExerciseUsed('pitch');
+    if (_session.getLives(_key) <= 0) _session.refillLives(_key);
     _nextQuestion();
   }
 
@@ -73,7 +74,20 @@ class _PitchState extends State<Pitch> {
         ? leftNote.frequency > rightNote.frequency
         : rightNote.frequency > leftNote.frequency;
 
-    _session.recordAnswer(_key, correct);
+    final chosenLabel = leftChosen
+        ? '${leftNote.name}${leftNote.octave} (L)'
+        : '${rightNote.name}${rightNote.octave} (R)';
+    final higher = leftNote.frequency > rightNote.frequency
+        ? leftNote
+        : rightNote;
+    final correctLabel = '${higher.name}${higher.octave} (higher)';
+
+    _session.recordAnswer(
+      _key,
+      correct,
+      chosenAnswer: chosenLabel,
+      correctAnswer: correctLabel,
+    );
     final scoreCount = _session.getScore(_key);
     final streakCount = _session.getStreak(_key);
     final questionCount = _session.getQuestion(_key);
@@ -110,6 +124,13 @@ class _PitchState extends State<Pitch> {
     if (!mounted) return;
     correct ? FeedbackPopup.success(context) : FeedbackPopup.error(context);
 
+    if (_session.isDead(_key)) {
+      Future.delayed(const Duration(milliseconds: 1400), () {
+        if (mounted) _showGameOver(context);
+      });
+      return;
+    }
+
     if (questionCount >= 10) {
       Future.delayed(const Duration(milliseconds: 1400), () {
         if (mounted) _showComplete(context, questionCount, scoreCount);
@@ -117,6 +138,53 @@ class _PitchState extends State<Pitch> {
     } else {
       _nextQuestion();
     }
+  }
+
+  void _showGameOver(BuildContext context) {
+    _player.play(AssetSource('audio/fail.wav'));
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A2E),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Colors.red.withValues(alpha: 0.5), width: 1),
+        ),
+        title: const Icon(Icons.heart_broken, color: Colors.red, size: 48),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Out of Lives!',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'You lost all 3 lives. Progress reset.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white70, fontSize: 14),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: _accent),
+            onPressed: () async {
+              await _session.reset(_key);
+              if (!mounted) return;
+              Navigator.pop(ctx);
+              _nextQuestion();
+            },
+            child: const Text('Try Again'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showComplete(BuildContext context, int total, int score) {
@@ -204,6 +272,22 @@ class _PitchState extends State<Pitch> {
           style: TextStyle(color: Colors.white, fontSize: 20),
         ),
         actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Row(
+              children: List.generate(3, (i) {
+                final filled = i < _session.getLives(_key);
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 1),
+                  child: Icon(
+                    filled ? Icons.favorite : Icons.favorite_border,
+                    color: filled ? Colors.red : Colors.white24,
+                    size: 18,
+                  ),
+                );
+              }),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.replay, color: Colors.white70),
             onPressed: () {
@@ -225,6 +309,7 @@ class _PitchState extends State<Pitch> {
                   '1. Listen to the notes\nTap both circle buttons to hear the two different notes.\n\n'
                   '2. Compare the pitch\nDecide which of the two notes sounds HIGHER.\n\n'
                   '3. Make your choice\nTap the LEFT arrow if the first note is higher, or tap the RIGHT arrow if the second note is higher.\n\n'
+                  'Lives: You start each round with 3 lives (♥♥♥). A wrong answer costs one. Lose all 3 and progress resets.\n\n'
                   'Tip: Tap the replay button (↻) in the top bar to hear both notes again.',
             ),
           ),

@@ -41,8 +41,19 @@ class _SplashScreenState extends State<SplashScreen> {
       body:
           'Start with Pitch — complete 10 questions to unlock Interval.\n'
           'Complete 5 Interval questions to unlock Scale.\n'
-          'Each exercise has its own help guide — tap ? anytime.\n\n'
-          'Ready? Let\'s train your ear.',
+          'Each exercise has its own help guide — tap ? anytime.\n\n',
+    ),
+    _Slide(
+      icon: 'assets/icons/circle.svg',
+      iconColor: Color(0xFFE94560),
+      title: 'Lives System',
+      body:
+          'Each exercise gives you 3 lives (♥♥♥).'
+          'A wrong answer costs one life.'
+          'Lose all 3 and your progress for that exercise resets — '
+          'you start over with fresh lives.\n\n'
+          'Lives refill when you complete a round or restart.\n\n'
+          'Ready? Let\'s train your ear.\n\n',
     ),
   ];
 

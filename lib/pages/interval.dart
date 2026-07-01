@@ -38,6 +38,7 @@ class _IntervalState extends State<Interval> {
   void initState() {
     super.initState();
     Achievement.markExerciseUsed('interval');
+    if (_session.getLives(_key) <= 0) _session.refillLives(_key);
     _nextQuestion();
   }
 
@@ -86,7 +87,12 @@ class _IntervalState extends State<Interval> {
     _answered = true;
     final bool correct = distance == _correctDistance;
 
-    _session.recordAnswer(_key, correct);
+    _session.recordAnswer(
+      _key,
+      correct,
+      chosenAnswer: '$distance notes',
+      correctAnswer: '$_correctDistance notes',
+    );
     final scoreCount = _session.getScore(_key);
     final streakCount = _session.getStreak(_key);
     final questionCount = _session.getQuestion(_key);
@@ -120,6 +126,13 @@ class _IntervalState extends State<Interval> {
     if (!mounted) return;
     correct ? FeedbackPopup.success(context) : FeedbackPopup.error(context);
 
+    if (_session.isDead(_key)) {
+      Future.delayed(const Duration(milliseconds: 1400), () {
+        if (mounted) _showGameOver(context);
+      });
+      return;
+    }
+
     if (questionCount >= 10) {
       Future.delayed(const Duration(milliseconds: 1400), () {
         if (mounted) _showComplete(context, questionCount, scoreCount);
@@ -127,6 +140,53 @@ class _IntervalState extends State<Interval> {
     } else {
       _nextQuestion();
     }
+  }
+
+  void _showGameOver(BuildContext context) {
+    _player.play(AssetSource('audio/fail.wav'));
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A2E),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Colors.red.withValues(alpha: 0.5), width: 1),
+        ),
+        title: const Icon(Icons.heart_broken, color: Colors.red, size: 48),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Out of Lives!',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'You lost all 3 lives. Progress reset.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white70, fontSize: 14),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: _accent),
+            onPressed: () async {
+              await _session.reset(_key);
+              if (!mounted) return;
+              Navigator.pop(ctx);
+              _nextQuestion();
+            },
+            child: const Text('Try Again'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showComplete(BuildContext context, int total, int score) {
@@ -214,6 +274,22 @@ class _IntervalState extends State<Interval> {
           style: TextStyle(color: Colors.white, fontSize: 20),
         ),
         actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Row(
+              children: List.generate(3, (i) {
+                final filled = i < _session.getLives(_key);
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 1),
+                  child: Icon(
+                    filled ? Icons.favorite : Icons.favorite_border,
+                    color: filled ? Colors.red : Colors.white24,
+                    size: 18,
+                  ),
+                );
+              }),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.replay, color: Colors.white70),
             onPressed: () {
@@ -235,6 +311,7 @@ class _IntervalState extends State<Interval> {
                   '1. Listen to the notes\nTap both circle buttons to hear the two different notes.\n\n'
                   '2. Calculate the distance\nListen closely to the gap between the two pitches. How many semitones (notes) apart are they?\n\n'
                   '3. Make your choice\nSelect the correct number from the grid below. Remember, you must listen to both notes first!\n\n'
+                  'Lives: You start each round with 3 lives (♥♥♥). A wrong answer costs one. Lose all 3 and progress resets.\n\n'
                   'Tip: Tap the replay button (↻) in the top bar to hear both notes again.',
             ),
           ),
