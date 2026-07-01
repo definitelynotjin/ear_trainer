@@ -156,8 +156,9 @@ class _PitchState extends State<Pitch> {
         actions: [
           TextButton(
             style: TextButton.styleFrom(foregroundColor: _accent),
-            onPressed: () {
-              _session.reset(_key);
+            onPressed: () async {
+              await _session.reset(_key);
+              if (!mounted) return;
               Navigator.pop(ctx);
               _nextQuestion();
             },

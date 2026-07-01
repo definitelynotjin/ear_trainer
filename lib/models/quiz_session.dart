@@ -20,12 +20,16 @@ class QuizSession {
     final dbPath = await getDatabasesPath();
     _db = await openDatabase(
       p.join(dbPath, 'ear_trainer.db'),
-      version: 4,
+      version: 5,
       onCreate: (db, v) async {
         await _createAllTables(db);
       },
       onUpgrade: (db, oldV, newV) async {
         await _createAllTables(db);
+        // Add lifetime column for upgrades from v4
+        await db.execute(
+          'ALTER TABLE quiz_progress ADD COLUMN lifetime INTEGER NOT NULL DEFAULT 0',
+        );
       },
     );
     return _db!;
@@ -38,7 +42,8 @@ class QuizSession {
         score INTEGER NOT NULL DEFAULT 0,
         streak INTEGER NOT NULL DEFAULT 0,
         question INTEGER NOT NULL DEFAULT 0,
-        last_correct INTEGER
+        last_correct INTEGER,
+        lifetime INTEGER NOT NULL DEFAULT 0
       )
     ''');
     await db.execute('''
@@ -83,6 +88,7 @@ class QuizSession {
         lastCorrect: r['last_correct'] == null
             ? null
             : (r['last_correct'] as int) == 1,
+        lifetime: (r['lifetime'] as int?) ?? 0,
       );
     }
     _loaded = true;
@@ -93,6 +99,10 @@ class QuizSession {
     return _cache[key]!;
   }
 
+  /// Lifetime answer count (never reset by round-level `reset`).
+  /// Only cleared by `resetAll`. Sync, from cache.
+  int getLifetime(String key) => _get(key).lifetime;
+
   Future<void> _persist(String key) async {
     final db = await _open();
     final s = _get(key);
@@ -102,6 +112,7 @@ class QuizSession {
       'streak': s.streak,
       'question': s.question,
       'last_correct': s.lastCorrect == null ? null : (s.lastCorrect! ? 1 : 0),
+      'lifetime': s.lifetime,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
@@ -136,6 +147,7 @@ class QuizSession {
   void recordAnswer(String key, bool correct) {
     final s = _get(key);
     s.question++;
+    s.lifetime++;
     if (correct) {
       s.score++;
       s.streak++;
@@ -184,9 +196,12 @@ class QuizSession {
   }
 
   Future<void> reset(String key) async {
-    _cache[key] = _ExerciseState();
+    // Preserve lifetime across round resets.
+    final oldLifetime = _get(key).lifetime;
+    _cache[key] = _ExerciseState(lifetime: oldLifetime);
     final db = await _open();
     await db.delete('quiz_progress', where: 'exercise = ?', whereArgs: [key]);
+    _persist(key);
   }
 
   Future<void> resetAll() async {
@@ -201,12 +216,14 @@ class _ExerciseState {
   int score;
   int streak;
   int question;
+  int lifetime;
   bool? lastCorrect;
 
   _ExerciseState({
     this.score = 0,
     this.streak = 0,
     this.question = 0,
+    this.lifetime = 0,
     this.lastCorrect,
   });
 }

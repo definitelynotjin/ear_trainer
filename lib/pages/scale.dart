@@ -155,7 +155,7 @@ class _ScaleState extends State<Scale> {
       Future.delayed(const Duration(milliseconds: 1400), () {
         if (mounted) _showComplete(context, questionCount, scoreCount);
       });
-    } else if (isCorrect) {
+    } else {
       Future.delayed(const Duration(milliseconds: 700), _newQuestion);
     }
   }
@@ -208,8 +208,9 @@ class _ScaleState extends State<Scale> {
         actions: [
           TextButton(
             style: TextButton.styleFrom(foregroundColor: _accent),
-            onPressed: () {
-              _session.reset(_key);
+            onPressed: () async {
+              await _session.reset(_key);
+              if (!mounted) return;
               Navigator.pop(ctx);
               _newQuestion();
             },

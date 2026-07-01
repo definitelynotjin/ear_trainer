@@ -34,8 +34,11 @@ class _FrontPageState extends State<FrontPage> {
   }
 
   int _progressFor(String key) => QuizSession().getQuestion(key);
-  bool get _intervalUnlocked => _progressFor('pitch') >= 10;
-  bool get _scaleUnlocked => _progressFor('interval') >= 5;
+  bool _lifetimeCompleted(String key, int threshold) =>
+      QuizSession().getLifetime(key) >= threshold;
+
+  bool get _intervalUnlocked => _lifetimeCompleted('pitch', 10);
+  bool get _scaleUnlocked => _lifetimeCompleted('interval', 5);
 
   @override
   Widget build(BuildContext context) {
